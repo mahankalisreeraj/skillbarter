@@ -196,7 +196,7 @@ else:
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://localhost:3001,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:5173,https://skillbarter-425d.vercel.app'
+    'http://localhost:3000,http://localhost:3001,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:5173,https://skillbarter-425d-git-main-rajs-projects-bd7652e7.vercel.app'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
@@ -208,7 +208,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1:5173',
-    'https://skillbarter-425d.vercel.app'
+    'https://skillbarter-425d-git-main-rajs-projects-bd7652e7.vercel.app'
 ]
 
 if os.getenv('CSRF_TRUSTED_ORIGINS'):
