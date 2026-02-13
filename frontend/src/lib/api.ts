@@ -2,11 +2,12 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: `${import.meta.env.VITE_API_URL}/api`,
     headers: {
         'Content-Type': 'application/json',
     },
 })
+
 
 // Helper to get access token from store or localStorage fallback
 const getAccessToken = (): string | null => {
@@ -57,7 +58,7 @@ api.interceptors.response.use(
                 const refreshToken = getRefreshToken()
                 if (!refreshToken) throw new Error('No refresh token')
 
-                const response = await axios.post('/api/auth/token/refresh/', {
+                const response = await api.post('/auth/token/refresh/', {
                     refresh: refreshToken,
                 })
 
