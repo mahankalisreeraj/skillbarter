@@ -1,1 +1,1 @@
-web: daphne -b 0.0.0.0 -p $PORT linklearn.asgi:application
+web: gunicorn linklearn.wsgi:application
