@@ -5,6 +5,8 @@ from .session import SessionViewSet
 from .bank import BankSupportView
 from .review import ReviewViewSet
 from .credit import CreditTransactionListView, CreditBalanceView
+from .presence import PresenceViewSet
+from .chat_views import ChatViewSet
 
 __all__ = [
     'SignupView',
@@ -19,4 +21,6 @@ __all__ = [
     'ReviewViewSet',
     'CreditTransactionListView',
     'CreditBalanceView',
+    'PresenceViewSet',
+    'ChatViewSet',
 ]

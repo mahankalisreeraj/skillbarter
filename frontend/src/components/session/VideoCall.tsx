@@ -38,12 +38,7 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
     // Helper to send signals
     const sendSignal = useCallback((type: string, data: any) => {
         if (isConnected) {
-            onSignal('signal', {
-                payload: {
-                    type,
-                    ...data
-                }
-            })
+            onSignal(type, data)
         }
     }, [onSignal, isConnected])
 
@@ -127,7 +122,9 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
                 }
 
                 // Announce ready
-                sendSignal('ready', {})
+                setTimeout(() => {
+                    sendSignal('ready', {})
+                }, 500) // Small delay to ensure partner is polling
 
             } catch (err) {
                 console.error('Failed to access media devices', err)
@@ -149,9 +146,11 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
 
     // Handle incoming signals
     useEffect(() => {
-        const handleSignal = async (e: CustomEvent) => {
-            const { peerId: senderId, ...payload } = e.detail
+        const handleSignal = async (e: any) => {
+            const payload = e.detail
             const pc = peerRef.current
+
+            console.log('SIGNAL DEBUG: Received', payload.type, 'SignalingState:', pc?.signalingState)
 
             console.log('DEBUG: VideoCall Signal Received', JSON.stringify({ type: payload.type, isCaller, signalingState: pc?.signalingState }))
 
@@ -221,8 +220,8 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
             }
         }
 
-        window.addEventListener('remote_peer_id' as any, handleSignal)
-        return () => window.removeEventListener('remote_peer_id' as any, handleSignal)
+        window.addEventListener('signal' as any, handleSignal)
+        return () => window.removeEventListener('signal' as any, handleSignal)
     }, [sendSignal, isCaller, remoteStream])
 
 

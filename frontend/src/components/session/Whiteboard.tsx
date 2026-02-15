@@ -115,7 +115,6 @@ export default function Whiteboard({ sessionId, isVisible, onSendData }: Whitebo
         broadcastChange(elements, appState)
     }, [excalidrawAPI, broadcastChange])
 
-    if (!isVisible) return null
 
     return (
         <div className="h-full w-full bg-slate-900 overflow-hidden">

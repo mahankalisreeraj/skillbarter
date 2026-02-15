@@ -91,16 +91,22 @@ ALLOWED_HOSTS = os.getenv(
 ).split(",")
 
 
-if 'DATABASE_URL' not in os.environ:
-    raise RuntimeError("DATABASE_URL environment variable not set. This project requires PostgreSQL.")
-
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=os.environ.get('RENDER', 'False') == 'true'
-    )
-}
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            ssl_require=os.environ.get('RENDER', 'False') == 'true'
+        )
+    }
+else:
+    # Fallback to SQLite for development if no DATABASE_URL is provided
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # For production with PostgreSQL:
 # DATABASES = {
@@ -196,7 +202,7 @@ else:
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://localhost:3001,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:5173,https://skillbarter-425d.vercel.app'
+    'http://localhost:3000,http://localhost:3001,http://localhost:5173,http://localhost:5174,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:5173,http://127.0.0.1:5174,https://skillbarter-425d.vercel.app'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
@@ -205,9 +211,11 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://localhost:5174',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:8000',
     'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
     'https://skillbarter-425d.vercel.app'
 ]
 

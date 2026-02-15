@@ -3,6 +3,7 @@ import Editor, { OnMount, OnChange } from '@monaco-editor/react'
 import type { editor } from 'monaco-editor'
 import throttle from 'lodash.throttle'
 import clsx from 'clsx'
+import api from '@/lib/api'
 
 interface FileEntry {
     name: string
@@ -130,7 +131,7 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
     useEffect(() => {
         const handleCodeUpdate = (event: CustomEvent) => {
             const { data } = event.detail
-            if (data.source === 'local') return
+            // if (data.source === 'local') return
 
             isImportingRef.current = true
 
@@ -270,24 +271,13 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
 
         try {
             // Use local backend proxy to avoid CORS
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/execute/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add auth token if needed, though this endpoint is public for now
-                },
-                body: JSON.stringify({
-                    language: lang,
-                    version: '*',
-                    files: [{ content: activeFile.content }]
-                })
+            const response = await api.post('/execute/', {
+                language: lang,
+                version: '*',
+                files: [{ content: activeFile.content }]
             })
 
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status} ${response.statusText}`)
-            }
-
-            const data = await response.json()
+            const data = response.data
             if (data.run) {
                 setOutput({
                     stdout: data.run.stdout,
@@ -304,7 +294,7 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
         }
     }
 
-    if (!isVisible) return null
+    // if (!isVisible) return null
 
     const getIcon = (lang: string) => {
         switch (lang) {

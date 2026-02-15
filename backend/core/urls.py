@@ -19,6 +19,8 @@ from .views import (
     ReviewViewSet,
     CreditTransactionListView,
     CreditBalanceView,
+    PresenceViewSet,
+    ChatViewSet,
 )
 from .views.misc import execute_code
 
@@ -26,6 +28,8 @@ from .views.misc import execute_code
 router = DefaultRouter()
 router.register(r'posts', LearningRequestPostViewSet, basename='post')
 router.register(r'sessions', SessionViewSet, basename='session')
+router.register(r'presence', PresenceViewSet, basename='presence')
+router.register(r'chat', ChatViewSet, basename='chat')
 
 urlpatterns = [
     # Authentication

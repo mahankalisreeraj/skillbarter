@@ -17,7 +17,7 @@ type LayoutMode = 'whiteboard' | 'video' | 'code'
 
 interface ChatPanelProps {
     className?: string
-    messages: Array<{ sender: string; message: string; timestamp: string }>
+    messages: Array<{ sender: number; sender_name: string; message: string; timestamp: string }>
     onSendMessage: (message: string) => void
     isConnected: boolean
 }
@@ -63,7 +63,7 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
                     <p className="text-slate-500 text-sm text-center py-4">No messages yet</p>
                 ) : (
                     messages.map((msg, i) => {
-                        const isMe = msg.sender === user?.name
+                        const isMe = msg.sender === user?.id
                         return (
                             <div
                                 key={i}
@@ -73,7 +73,7 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
                                 )}
                             >
                                 <div className="flex items-baseline gap-2 mb-1">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{msg.sender}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{msg.sender_name}</span>
                                     <span className="text-[10px] text-slate-500">{formatTimestamp(msg.timestamp)}</span>
                                 </div>
                                 <div

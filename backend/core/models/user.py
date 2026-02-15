@@ -64,6 +64,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         help_text='User availability (e.g., "Mon-Fri 9am-5pm")'
     )
+    last_seen = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text='Last time user was seen active'
+    )
     
     # Support credit tracking
     last_support_request = models.DateTimeField(

@@ -1,8 +1,12 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import { usePolling } from './usePolling'
+import api from '@/lib/api'
 
 interface ChatMessage {
-    sender: string
+    id: number
+    sender: number
+    sender_name: string
     message: string
     timestamp: string
 }
@@ -17,111 +21,71 @@ interface ChatSocketActions {
     reconnect: () => void
 }
 
-const WS_BASE = import.meta.env?.VITE_WS_URL || 'ws://127.0.0.1:8000'
-const RECONNECT_DELAY = 3000
+const POLL_INTERVAL = 3000 // Poll every 3 seconds for chat
 
 export function useChatSocket(sessionId: string | number | undefined): ChatSocketState & ChatSocketActions {
     const [isConnected, setIsConnected] = useState(false)
     const [messages, setMessages] = useState<ChatMessage[]>([])
-
-    const socketRef = useRef<WebSocket | null>(null)
-    const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const lastIdRef = useRef<number | null>(null)
 
     const { accessToken, isAuthenticated } = useAuthStore()
 
-    const connect = useCallback(() => {
-        const id = String(sessionId)
-        if (!sessionId || id === 'undefined' || id === 'NaN' || !accessToken || !isAuthenticated) return
-        if (socketRef.current?.readyState === WebSocket.OPEN) return
+    const fetchMessages = useCallback(async () => {
+        const sid = String(sessionId)
+        if (!sessionId || sid === 'undefined' || sid === 'NaN' || !accessToken || !isAuthenticated) return
 
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current)
-            reconnectTimeoutRef.current = null
-        }
+        try {
+            const params = lastIdRef.current ? { since_id: lastIdRef.current } : {}
+            const response = await api.get(`/chat/${sessionId}/messages/`, { params })
 
-        const wsUrl = `${WS_BASE}/ws/chat/${sessionId}/?token=${accessToken}`
-        const socket = new WebSocket(wsUrl)
-
-        socket.onopen = () => {
-            setIsConnected(true)
-        }
-
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data)
-
-                switch (data.type) {
-                    case 'chat_message':
-                        setMessages(prev => [...prev, {
-                            sender: data.sender,
-                            message: data.message,
-                            timestamp: data.timestamp || new Date().toISOString(),
-                        }])
-                        break
-
-                    case 'chat_history':
-                        if (Array.isArray(data.messages)) {
-                            setMessages(data.messages)
-                        }
-                        break
+            const newMessages = response.data
+            if (Array.isArray(newMessages) && newMessages.length > 0) {
+                if (lastIdRef.current === null) {
+                    // Initial load
+                    setMessages(newMessages)
+                } else {
+                    // Append new messages
+                    setMessages(prev => [...prev, ...newMessages])
                 }
-            } catch (error) {
-                console.error('Failed to parse chat message:', error)
+                lastIdRef.current = newMessages[newMessages.length - 1].id
             }
-        }
-
-        socket.onclose = () => {
+            setIsConnected(true)
+        } catch (error) {
+            console.error('Failed to poll chat messages:', error)
             setIsConnected(false)
-
-            // Auto-reconnect if still authenticated
-            if (useAuthStore.getState().isAuthenticated) {
-                reconnectTimeoutRef.current = setTimeout(() => {
-                    connect()
-                }, RECONNECT_DELAY)
-            }
         }
-
-        socket.onerror = () => {
-            socket.close()
-        }
-
-        socketRef.current = socket
     }, [sessionId, accessToken, isAuthenticated])
 
-    const disconnect = useCallback(() => {
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current)
-            reconnectTimeoutRef.current = null
+    usePolling(fetchMessages, {
+        interval: POLL_INTERVAL,
+        enabled: !!sessionId && !!accessToken && isAuthenticated,
+        immediate: true
+    }, [fetchMessages])
+
+    const sendMessage = useCallback(async (message: string) => {
+        if (!message.trim() || !sessionId) return
+
+        try {
+            const response = await api.post(`/chat/${sessionId}/send/`, {
+                message: message.trim()
+            })
+            // Immediately update local messages to feel responsive
+            setMessages(prev => [...prev, response.data])
+            lastIdRef.current = response.data.id
+        } catch (error) {
+            console.error('Failed to send message:', error)
         }
-        if (socketRef.current) {
-            socketRef.current.close()
-            socketRef.current = null
-        }
-        setIsConnected(false)
-        setMessages([])
-    }, [])
+    }, [sessionId])
 
     const reconnect = useCallback(() => {
-        disconnect()
-        setTimeout(connect, 100)
-    }, [connect, disconnect])
+        fetchMessages()
+    }, [fetchMessages])
 
-    const sendMessage = useCallback((message: string) => {
-        if (socketRef.current?.readyState === WebSocket.OPEN && message.trim()) {
-            socketRef.current.send(JSON.stringify({
-                type: 'chat_message',
-                message: message.trim(),
-            }))
-        }
-    }, [])
-
-    // Connect on mount
+    // Cleanup on session change
     useEffect(() => {
-        if (sessionId && isAuthenticated && accessToken) {
-            connect()
-        }
-        return () => disconnect()
-    }, [sessionId, isAuthenticated, accessToken, connect, disconnect])
+        setMessages([])
+        lastIdRef.current = null
+    }, [sessionId])
 
     return {
         isConnected,

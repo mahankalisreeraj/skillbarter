@@ -146,6 +146,94 @@ class SessionViewSet(viewsets.ModelViewSet):
             'timer': SessionTimerSerializer(active_timer).data
         })
     
+    @action(detail=True, methods=['get'])
+    def updates(self, request, pk=None):
+        """
+        Poll for session updates (timer status, credits, collaborative data).
+        """
+        session = self.get_object()
+        
+        # Verify user is participant
+        if request.user not in [session.user1, session.user2]:
+            return Response({'error': 'Not a participant'}, status=status.HTTP_403_FORBIDDEN)
+            
+        data = {
+            'session': SessionSerializer(session).data,
+            'whiteboard_data': session.whiteboard_data,
+            'code_data': session.code_data,
+            'last_sync_time': session.last_sync_time,
+            'last_sync_by': session.last_sync_by_id,
+            'your_credits': float(request.user.credits),
+            'signal_data': session.signal_data,
+            'signal_sender': session.signal_sender_id,
+            'signal_timestamp': session.signal_timestamp
+        }
+        
+        return Response(data)
+
+    @action(detail=True, methods=['post'])
+    def sync(self, request, pk=None):
+        """
+        Receive whiteboard/code updates from clients.
+        """
+        session = self.get_object()
+        
+        # Verify user is participant
+        if request.user not in [session.user1, session.user2]:
+            return Response({'error': 'Not a participant'}, status=status.HTTP_403_FORBIDDEN)
+            
+        whiteboard_data = request.data.get('whiteboard_data')
+        code_data = request.data.get('code_data')
+        signal_data = request.data.get('signal_data')
+        
+        update_fields = ['last_sync_time', 'last_sync_by']
+        session.last_sync_by = request.user
+        
+        if whiteboard_data is not None:
+            # Strip source: 'local' to ensure polling clients accept it
+            if isinstance(whiteboard_data, dict):
+                whiteboard_data.pop('source', None)
+            session.whiteboard_data = whiteboard_data
+            update_fields.append('whiteboard_data')
+            
+        if code_data is not None:
+            # Strip source: 'local'
+            if isinstance(code_data, dict):
+                code_data.pop('source', None)
+            session.code_data = code_data
+            update_fields.append('code_data')
+            
+        if signal_data is not None:
+            # Initialize if empty
+            if not session.signal_data:
+                session.signal_data = {}
+            
+            sig_type = signal_data.get('type')
+            # Add sender info to signal_data if not present
+            signal_data['sender_id'] = request.user.id
+            
+            if sig_type in ['offer', 'answer']:
+                session.signal_data[sig_type] = signal_data
+            elif sig_type == 'ready':
+                role = 'caller' if request.user == session.user1 else 'callee'
+                session.signal_data[f'ready_{role}'] = True
+                # Also store the raw signal for dispatch
+                session.signal_data['ready_signal'] = signal_data
+            elif sig_type == 'candidate':
+                # Separate candidates by role to avoid overwriting
+                role = 'caller' if request.user == session.user1 else 'callee'
+                key = f'candidates_{role}'
+                candidates = session.signal_data.get(key, [])
+                candidates.append(signal_data)
+                session.signal_data[key] = candidates[-10:] # Keep last 10
+            
+            session.signal_sender = request.user
+            update_fields.extend(['signal_data', 'signal_sender', 'signal_timestamp'])
+            
+        session.save(update_fields=update_fields)
+        
+        return Response({'status': 'synced'})
+    
     @action(detail=True, methods=['post'])
     def end(self, request, pk=None):
         """

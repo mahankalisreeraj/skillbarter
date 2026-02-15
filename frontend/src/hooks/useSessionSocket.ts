@@ -1,5 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import { usePolling } from './usePolling'
+import api from '@/lib/api'
 import type { Session, SessionTimer } from '@/types'
 
 interface SessionSocketState {
@@ -20,8 +22,7 @@ interface SessionSocketActions {
     sendCode: (data: unknown) => void
 }
 
-const WS_BASE = import.meta.env?.VITE_WS_URL || 'ws://127.0.0.1:8000'
-const RECONNECT_DELAY = 3000
+const POLL_INTERVAL = 1500 // 1.5 seconds for active collaboration
 
 export function useSessionSocket(sessionId: string | number | undefined): SessionSocketState & SessionSocketActions {
     const [isConnected, setIsConnected] = useState(false)
@@ -30,228 +31,151 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const [yourCredits, setYourCredits] = useState(0)
     const [error, setError] = useState<string | null>(null)
 
-    const socketRef = useRef<WebSocket | null>(null)
-    const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const lastSyncTimeRef = useRef<string | null>(null)
+    const lastSignalTimeRef = useRef<string | null>(null)
+    const { accessToken, isAuthenticated, user, updateCredits } = useAuthStore()
 
-    // Only subscribe to essential auth state changes that effectively require a reconnect (like token)
-    const accessToken = useAuthStore(state => state.accessToken)
-    const isAuthenticated = useAuthStore(state => state.isAuthenticated)
-    // For user ID and actions, we can access them directly or via getState to avoid re-triggering 'connect'
-    // However, if we want to update UI based on credits, we need local state (which we have: yourCredits)
-
-    const connect = useCallback(() => {
+    const fetchUpdates = useCallback(async () => {
         const id = String(sessionId)
-
         if (!sessionId || id === 'undefined' || id === 'NaN' || !accessToken || !isAuthenticated) {
             return
         }
 
-        // Prevent double connection
-        if (socketRef.current) {
-            if (socketRef.current.readyState === WebSocket.OPEN || socketRef.current.readyState === WebSocket.CONNECTING) {
-                return
-            }
-        }
+        try {
+            const response = await api.get(`/sessions/${sessionId}/updates/`)
+            const data = response.data
 
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current)
-            reconnectTimeoutRef.current = null
-        }
-
-        const wsUrl = `${WS_BASE}/ws/session/${sessionId}/?token=${accessToken}`
-        const socket = new WebSocket(wsUrl)
-
-        socket.onopen = () => {
-            console.log('DEBUG: Session WebSocket Connected')
+            setSession(data.session)
+            setActiveTimer(data.session.active_timer)
             setIsConnected(true)
-            setError(null)
-        }
 
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data)
-                console.log('DEBUG: Session Socket Message', data.type)
+            if (data.your_credits !== undefined) {
+                setYourCredits(data.your_credits)
+                updateCredits(data.your_credits)
+            }
 
-                // Access fresh store state without adding to dependencies
-                const currentUser = useAuthStore.getState().user
-                const updateCredits = useAuthStore.getState().updateCredits
+            // WebRTC Signaling Buffer
+            if (data.signal_data && data.signal_timestamp !== lastSignalTimeRef.current) {
+                const sig = data.signal_data
+                const myId = user?.id
 
-                switch (data.type) {
-                    case 'session_state':
-                        console.log('DEBUG: Setting Session State', data.session)
-                        setSession(data.session)
-                        setActiveTimer(data.session.active_timer)
-                        break
-
-                    case 'timer_started':
-                        setActiveTimer({
-                            id: data.timer_id,
-                            teacher: data.teacher_id,
-                            teacher_name: data.teacher_name,
-                            start_time: data.start_time,
-                            end_time: null,
-                            duration_seconds: null,
-                            is_running: true,
-                        })
-                        break
-
-                    case 'timer_stopped':
-                        setActiveTimer(null)
-                        if (data.new_total_time !== undefined) {
-                            setSession(prev => {
-                                if (!prev) return null
-                                const user1Id = String(prev.user1)
-                                const teacherId = String(data.teacher_id)
-                                if (teacherId === user1Id) {
-                                    return { ...prev, user1_teaching_time: data.new_total_time }
-                                } else {
-                                    return { ...prev, user2_teaching_time: data.new_total_time }
-                                }
-                            })
-                        }
-                        break
-
-                    case 'session_ended':
-                        setSession(prev => prev ? { ...prev, is_active: false } : null)
-                        setActiveTimer(null)
-                        if (data.your_credits !== undefined) {
-                            setYourCredits(data.your_credits)
-                            updateCredits(data.your_credits)
-                        }
-                        break
-
-                    case 'credit_update':
-                        if (data.user_id === currentUser?.id) {
-                            setYourCredits(data.new_balance)
-                            updateCredits(data.new_balance)
-                        }
-                        break
-
-                    case 'signal':
-                        if (data.payload) {
-                            window.dispatchEvent(new CustomEvent('remote_peer_id', {
-                                detail: {
-                                    peerId: 'peer',
-                                    ...data.payload
-                                }
-                            }))
-                        }
-                        break
-
-                    case 'whiteboard_update':
-                        window.dispatchEvent(new CustomEvent('whiteboard_update', {
-                            detail: { data: data.data }
-                        }))
-                        break
-
-                    case 'code_update':
-                        window.dispatchEvent(new CustomEvent('code_update', {
-                            detail: { data: data.data }
-                        }))
-                        break
-
-                    case 'error':
-                        setError(data.message || 'An error occurred')
-                        break
+                // 1. Process discrete signals (offer, answer, ready)
+                if (sig.offer && sig.offer.sender_id !== myId) {
+                    window.dispatchEvent(new CustomEvent('signal', { detail: sig.offer }))
                 }
-            } catch (error) {
-                console.error('Failed to parse session message:', error)
-            }
-        }
+                if (sig.answer && sig.answer.sender_id !== myId) {
+                    window.dispatchEvent(new CustomEvent('signal', { detail: sig.answer }))
+                }
+                if (sig.ready_signal && sig.ready_signal.sender_id !== myId) {
+                    window.dispatchEvent(new CustomEvent('signal', { detail: sig.ready_signal }))
+                }
 
-        socket.onclose = (event) => {
+                // 2. Process all recent candidates from the other user
+                const peerRole = data.session.user1 === myId ? 'callee' : 'caller'
+                const peerCandidates = sig[`candidates_${peerRole}`]
+
+                if (peerCandidates && Array.isArray(peerCandidates)) {
+                    peerCandidates.forEach((candidate: any) => {
+                        window.dispatchEvent(new CustomEvent('signal', { detail: candidate }))
+                    })
+                }
+
+                lastSignalTimeRef.current = data.signal_timestamp
+            }
+
+            // Collaborative sync (Whiteboard/Code)
+            if (data.last_sync_by !== user?.id && data.last_sync_time !== lastSyncTimeRef.current) {
+                if (data.whiteboard_data) {
+                    window.dispatchEvent(new CustomEvent('whiteboard_update', {
+                        detail: { data: data.whiteboard_data }
+                    }))
+                }
+                if (data.code_data) {
+                    // Backend returns code_data as a JSON object containing files/activeIndex
+                    window.dispatchEvent(new CustomEvent('code_update', {
+                        detail: { data: data.code_data }
+                    }))
+                }
+                lastSyncTimeRef.current = data.last_sync_time
+            }
+        } catch (error) {
+            console.error('Failed to poll session updates:', error)
             setIsConnected(false)
-
-            // Auto-reconnect if still authenticated and session is active
-            if (useAuthStore.getState().isAuthenticated && event.code !== 4003) {
-                reconnectTimeoutRef.current = setTimeout(() => {
-                    connect()
-                }, RECONNECT_DELAY)
-            }
+            setError('Connection lost. Retrying...')
         }
+    }, [sessionId, accessToken, isAuthenticated, user?.id, updateCredits])
 
-        socket.onerror = () => {
-            setError('Connection error')
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.close()
-            }
-        }
+    usePolling(fetchUpdates, {
+        interval: POLL_INTERVAL,
+        enabled: !!sessionId && !!accessToken && isAuthenticated,
+        immediate: true
+    }, [fetchUpdates])
 
-        socketRef.current = socket
-    }, [sessionId, accessToken, isAuthenticated])
+    const startTimer = useCallback(async () => {
+        try {
+            await api.post(`/sessions/${sessionId}/timer/start/`)
+            fetchUpdates()
+        } catch (err: any) {
+            setError(err.response?.data?.error || 'Failed to start timer')
+        }
+    }, [sessionId, fetchUpdates])
 
-    const disconnect = useCallback(() => {
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current)
-            reconnectTimeoutRef.current = null
+    const stopTimer = useCallback(async () => {
+        try {
+            await api.post(`/sessions/${sessionId}/timer/stop/`)
+            fetchUpdates()
+        } catch (err: any) {
+            setError(err.response?.data?.error || 'Failed to stop timer')
         }
-        if (socketRef.current) {
-            socketRef.current.close()
-            socketRef.current = null
+    }, [sessionId, fetchUpdates])
+
+    const endSession = useCallback(async () => {
+        try {
+            await api.post(`/sessions/${sessionId}/end/`)
+            fetchUpdates()
+        } catch (err: any) {
+            setError(err.response?.data?.error || 'Failed to end session')
         }
-        setIsConnected(false)
-    }, [])
+    }, [sessionId, fetchUpdates])
+
+    const sendWhiteboard = useCallback(async (data: unknown) => {
+        try {
+            await api.post(`/sessions/${sessionId}/sync/`, { whiteboard_data: data })
+        } catch (error) {
+            console.error('Failed to sync whiteboard:', error)
+        }
+    }, [sessionId])
+
+    const sendCode = useCallback(async (data: unknown) => {
+        try {
+            await api.post(`/sessions/${sessionId}/sync/`, { code_data: data })
+        } catch (error) {
+            console.error('Failed to sync code:', error)
+        }
+    }, [sessionId])
+
+    const sendMessage = useCallback(async (type: string, data: Record<string, unknown> = {}) => {
+        // Signaling uses this. 
+        // We merge type into data to match the expected format: { type: 'offer', sdp: ... }
+        try {
+            await api.post(`/sessions/${sessionId}/sync/`, {
+                signal_data: { type, ...data }
+            })
+        } catch (error) {
+            console.error('Failed to send signal:', error)
+        }
+    }, [sessionId])
 
     const reconnect = useCallback(() => {
-        disconnect()
-        setTimeout(connect, 100)
-    }, [connect, disconnect])
-
-    const sendMessage = useCallback((type: string, data: Record<string, unknown> = {}) => {
-        if (socketRef.current?.readyState === WebSocket.OPEN) {
-            socketRef.current.send(JSON.stringify({ type, ...data }))
-        }
-    }, [])
-
-    const sendWhiteboard = useCallback((data: unknown) => {
-        if (socketRef.current?.readyState === WebSocket.OPEN) {
-            socketRef.current.send(JSON.stringify({
-                type: 'whiteboard_update',
-                data
-            }))
-        }
-    }, [])
-
-    const sendCode = useCallback((data: unknown) => {
-        if (socketRef.current?.readyState === WebSocket.OPEN) {
-            socketRef.current.send(JSON.stringify({
-                type: 'code_update',
-                data
-            }))
-        }
-    }, [])
-
-    const startTimer = useCallback(() => {
-        sendMessage('timer_start')
-    }, [sendMessage])
-
-    const stopTimer = useCallback(() => {
-        sendMessage('timer_stop')
-    }, [sendMessage])
-
-    const endSession = useCallback(() => {
-        sendMessage('end_session')
-    }, [sendMessage])
-
-    // Connect on mount
-    useEffect(() => {
-        console.log('DEBUG: useSessionSocket Effect Triggered', { sessionId, isAuthenticated, hasToken: !!accessToken })
-        if (sessionId && isAuthenticated && accessToken) {
-            connect()
-        }
-        return () => {
-            console.log('DEBUG: useSessionSocket Effect Cleanup')
-            disconnect()
-        }
-    }, [sessionId, isAuthenticated, accessToken, connect, disconnect])
+        fetchUpdates()
+    }, [fetchUpdates])
 
     // Initialize credits from user
     useEffect(() => {
-        const user = useAuthStore.getState().user
         if (user?.credits !== undefined) {
             setYourCredits(Number(user.credits))
         }
-    }, [isAuthenticated]) // Only reset on fresh auth, or we could listen to store changes cautiously
+    }, [isAuthenticated, user?.credits])
 
     return {
         isConnected,

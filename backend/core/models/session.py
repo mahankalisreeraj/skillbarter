@@ -30,6 +30,29 @@ class Session(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     
+    # Collaborative data for polling sync
+    whiteboard_data = models.JSONField(null=True, blank=True)
+    code_data = models.JSONField(null=True, blank=True)
+    last_sync_time = models.DateTimeField(auto_now=True)
+    last_sync_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='synced_sessions'
+    )
+    
+    # WebRTC Signaling via polling
+    signal_data = models.JSONField(null=True, blank=True)
+    signal_sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sent_signals'
+    )
+    signal_timestamp = models.DateTimeField(auto_now=True)
+    
     class Meta:
         verbose_name = 'session'
         verbose_name_plural = 'sessions'

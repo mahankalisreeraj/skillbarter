@@ -3,6 +3,7 @@ from .learning_request import LearningRequestPostSerializer, LearningRequestPost
 from .session import SessionSerializer, SessionCreateSerializer, SessionTimerSerializer
 from .review import ReviewSerializer, ReviewCreateSerializer
 from .credit import CreditTransactionSerializer
+from .chat import ChatMessageSerializer
 
 __all__ = [
     'UserSerializer',
@@ -17,5 +18,6 @@ __all__ = [
     'ReviewSerializer',
     'ReviewCreateSerializer',
     'CreditTransactionSerializer',
+    'ChatMessageSerializer',
 ]
 
