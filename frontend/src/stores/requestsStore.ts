@@ -26,7 +26,7 @@ export const usePostsStore = create<PostsState>((set) => ({
     fetchPosts: async () => {
         set({ isLoading: true, error: null })
         try {
-            const response = await api.get('/posts/')
+            const response = await api.get('posts/')
             // Handle paginated response (Django REST returns { results: [...] })
             const posts = Array.isArray(response.data)
                 ? response.data
@@ -40,7 +40,7 @@ export const usePostsStore = create<PostsState>((set) => ({
     fetchMyPosts: async () => {
         set({ isLoading: true, error: null })
         try {
-            const response = await api.get('/posts/my_posts/')
+            const response = await api.get('posts/my_posts/')
             // Handle paginated response (Django REST returns { results: [...] })
             const myPosts = Array.isArray(response.data)
                 ? response.data
@@ -54,7 +54,7 @@ export const usePostsStore = create<PostsState>((set) => ({
     createPost: async (topicLearn: string, topicTeach: string, okWithJustLearning: boolean) => {
         set({ error: null })
         try {
-            const response = await api.post('/posts/', {
+            const response = await api.post('posts/', {
                 topic_to_learn: topicLearn,
                 topic_to_teach: topicTeach || '',
                 ok_with_just_learning: okWithJustLearning,
@@ -92,7 +92,7 @@ export const usePostsStore = create<PostsState>((set) => ({
 
     markCompleted: async (id: number) => {
         try {
-            await api.patch(`/posts/${id}/complete/`)
+            await api.patch(`posts/${id}/complete/`)
 
             // Update local state
             set((state) => ({
@@ -108,7 +108,7 @@ export const usePostsStore = create<PostsState>((set) => ({
 
     deletePost: async (id: number) => {
         try {
-            await api.delete(`/posts/${id}/`)
+            await api.delete(`posts/${id}/`)
             set((state) => ({
                 posts: state.posts.filter((p) => p.id !== id),
                 myPosts: state.myPosts.filter((p) => p.id !== id),

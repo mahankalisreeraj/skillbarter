@@ -28,7 +28,7 @@ export const useSessionsStore = create<SessionsState>((set) => ({
     fetchSessions: async () => {
         set({ isLoading: true, error: null })
         try {
-            const response = await api.get('/sessions/')
+            const response = await api.get('sessions/')
             // Handle paginated response (Django REST returns { results: [...] })
             const sessions = Array.isArray(response.data)
                 ? response.data
@@ -42,7 +42,7 @@ export const useSessionsStore = create<SessionsState>((set) => ({
     fetchSession: async (id: number) => {
         set({ isLoading: true, error: null })
         try {
-            const response = await api.get(`/sessions/${id}/`)
+            const response = await api.get(`sessions/${id}/`)
             const session = response.data
             set({ currentSession: session, isLoading: false })
             return session
@@ -60,7 +60,7 @@ export const useSessionsStore = create<SessionsState>((set) => ({
                 payload.learning_request = learningRequestId
             }
 
-            const response = await api.post('/sessions/', payload)
+            const response = await api.post('sessions/', payload)
             const newSession = response.data
 
             // Add to local state
@@ -80,7 +80,7 @@ export const useSessionsStore = create<SessionsState>((set) => ({
 
     endSession: async (id: number) => {
         try {
-            const response = await api.post(`/sessions/${id}/end/`)
+            const response = await api.post(`sessions/${id}/end/`)
             const { credit_summary } = response.data
 
             // Update local session state
@@ -101,13 +101,7 @@ export const useSessionsStore = create<SessionsState>((set) => ({
                     const user1Data = credit_summary.user1
                     const user2Data = credit_summary.user2
 
-                    let newBalance = -1
-                    if (user1Data.id === currentUser.id) {
-                        // Backend response doesn't give new balance directly in summary, 
-                        // so we should fetch profile or trust the summary if it had it.
-                        // Actually, it's better to just trigger a profile fetch to be safe and accurate
-                        useAuthStore.getState().fetchProfile()
-                    } else if (user2Data.id === currentUser.id) {
+                    if (user1Data.id === currentUser.id || user2Data.id === currentUser.id) {
                         useAuthStore.getState().fetchProfile()
                     }
                 }
@@ -123,7 +117,7 @@ export const useSessionsStore = create<SessionsState>((set) => ({
 
     submitReview: async (sessionId: number, review: ReviewCreate) => {
         try {
-            const response = await api.post(`/sessions/${sessionId}/reviews/`, review)
+            const response = await api.post(`sessions/${sessionId}/reviews/`, review)
             return response.data
         } catch (error: unknown) {
             const err = error as { response?: { data?: { detail?: string } } }

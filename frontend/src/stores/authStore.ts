@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
             login: async (email: string, password: string) => {
                 set({ isLoading: true })
                 try {
-                    const response = await api.post('/auth/login/', { email, password })
+                    const response = await api.post('auth/login/', { email, password })
                     const { tokens, user } = response.data
                     const { access, refresh } = tokens
 
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true })
                 try {
                     // Register new user
-                    await api.post('/auth/signup/', {
+                    await api.post('auth/signup/', {
                         name,
                         email,
                         password,
@@ -75,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
 
             logout: () => {
                 // Call backend to set offline status (fire and forget)
-                api.post('/auth/logout/').catch(err => console.error('Logout failed:', err))
+                api.post('auth/logout/').catch(err => console.error('Logout failed:', err))
 
                 // Clear localStorage tokens
                 localStorage.removeItem('access_token')
@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
                 if (!refreshToken) return false
 
                 try {
-                    const response = await api.post('/auth/token/refresh/', {
+                    const response = await api.post('auth/token/refresh/', {
                         refresh: refreshToken,
                     })
                     const newAccessToken = response.data.access

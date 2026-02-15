@@ -17,6 +17,12 @@ class SignupView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
     
+    def get(self, request):
+        return Response({
+            'detail': 'This is the registration endpoint. Use POST to signup.',
+            'tip': 'If you are looking for the signup page, please visit the frontend application (usually at port 5173).'
+        }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def post(self, request):
         serializer = UserCreateSerializer(data=request.data)
         
@@ -46,6 +52,12 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
     
+    def get(self, request):
+        return Response({
+            'detail': 'This is the login endpoint. Use POST to login.',
+            'tip': 'If you are looking for the login page, please visit the frontend application (usually at port 5173).'
+        }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
     def post(self, request):
         from django.contrib.auth import authenticate
         
