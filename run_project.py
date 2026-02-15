@@ -10,7 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.absolute()
 BACKEND_DIR = PROJECT_ROOT / "backend"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
-VENV_PYTHON = BACKEND_DIR / "venv" / "Scripts" / "python.exe"
+VENV_PYTHON = PROJECT_ROOT / ".venv" / "bin" / "python.exe"
 
 # Commands
 if VENV_PYTHON.exists():
