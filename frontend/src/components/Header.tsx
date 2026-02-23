@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { usePostsStore } from '@/stores/requestsStore'
 import { useState, useEffect } from 'react'
 import AvailabilityModal from './AvailabilityModal'
+import { motion } from 'framer-motion'
 
 export default function Header() {
     const { user, isAuthenticated, logout } = useAuthStore()
@@ -40,11 +41,21 @@ export default function Header() {
 
     return (
         <>
-            <header className="h-16 bg-surface/50 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-40">
+            <motion.header
+                initial={{ y: -64 }}
+                animate={{ y: 0 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                className="h-16 bg-surface/50 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-40"
+            >
                 {/* Logo */}
                 <div className="flex items-center gap-4">
-                    <Link to="/" className="flex items-center gap-2">
-                        <span className="text-2xl">🔗</span>
+                    <Link to="/" className="flex items-center gap-2 group">
+                        <motion.span
+                            whileHover={{ rotate: 15, scale: 1.1 }}
+                            className="text-2xl"
+                        >
+                            🔗
+                        </motion.span>
                         <span className="font-bold text-lg bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent hidden sm:block">
                             Link & Learn
                         </span>
@@ -112,7 +123,7 @@ export default function Header() {
                         </>
                     )}
                 </nav>
-            </header>
+            </motion.header>
 
             <AvailabilityModal
                 isOpen={showAvailabilityModal}

@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 import api from '@/lib/api'
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 
 const navItems = [
     { path: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
@@ -47,17 +48,41 @@ export default function Sidebar() {
             {/* Bank Widget - Always Visible */}
             {isAuthenticated && user && (
                 <div className="p-6">
-                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-500 to-accent p-6 text-center shadow-lg shadow-primary/20">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        key={user.credits} // Animate on credit change
+                        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-500 to-accent p-6 text-center shadow-lg shadow-primary/20"
+                    >
                         {/* Decorative circles */}
-                        <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
-                        <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/10 rounded-full blur-xl" />
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 90, 0]
+                            }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                            className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"
+                        />
+                        <motion.div
+                            animate={{
+                                scale: [1, 1.3, 1],
+                                x: [0, 10, 0]
+                            }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                            className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/10 rounded-full blur-xl"
+                        />
 
                         <p className="text-sm text-white/80 font-medium uppercase tracking-wider relative z-10">
                             Your Balance
                         </p>
-                        <p className="text-4xl font-bold mt-2 mb-1 relative z-10">
+                        <motion.p
+                            key={user.credits}
+                            initial={{ scale: 1.2, color: '#fbbf24' }}
+                            animate={{ scale: 1, color: '#fff' }}
+                            className="text-4xl font-bold mt-2 mb-1 relative z-10"
+                        >
                             {Number(user.credits).toFixed(2)}
-                        </p>
+                        </motion.p>
                         <p className="text-xs text-white/70 uppercase tracking-widest relative z-10">
                             Credits
                         </p>
@@ -66,7 +91,7 @@ export default function Sidebar() {
                         <div className="mt-4 pt-4 border-t border-white/20 text-xs text-white/60 relative z-10">
                             5 min teaching = 1 credit
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Bank Support Link */}
                     <button

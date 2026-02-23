@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 
 interface ReviewCardProps {
     reviewerId: number
@@ -19,7 +20,10 @@ export default function ReviewCard({ reviewerId, reviewerName, rating, comment, 
     }
 
     return (
-        <div className="card p-4">
+        <motion.div
+            whileHover={{ y: -4, borderColor: 'rgba(192, 132, 252, 0.4)' }}
+            className="card p-4 transition-colors"
+        >
             <div className="flex items-start justify-between mb-3">
                 <Link to={`/user/${reviewerId}`} className="flex items-center gap-3 group">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold transition-transform group-hover:scale-105">
@@ -43,6 +47,6 @@ export default function ReviewCard({ reviewerId, reviewerName, rating, comment, 
             {comment && (
                 <p className="text-slate-300 text-sm">{comment}</p>
             )}
-        </div>
+        </motion.div>
     )
 }

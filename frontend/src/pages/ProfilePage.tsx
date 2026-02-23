@@ -6,6 +6,26 @@ import { useSessionsStore } from '@/stores/sessionsStore'
 import { usePresenceStore } from '@/stores/presenceStore'
 import ReviewCard from '@/components/ReviewCard'
 import type { Review, LearningPost } from '@/types'
+import { motion, AnimatePresence } from 'framer-motion'
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+} as const
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.5, ease: "easeOut" }
+    }
+} as const
 
 interface ProfileData {
     id: number
@@ -165,9 +185,14 @@ export default function ProfilePage() {
     const avgRating = profile.average_rating ?? 0
 
     return (
-        <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="max-w-3xl mx-auto space-y-8 pb-12"
+        >
             {/* Profile Header */}
-            <div className="card">
+            <motion.div variants={itemVariants} className="card">
                 <div className="flex items-center gap-6">
                     <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold relative">
                         {profile.name.charAt(0).toUpperCase()}
@@ -208,19 +233,19 @@ export default function ProfilePage() {
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="card text-center py-6">
+            <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4">
+                <div className="card text-center py-6 hover:bg-white/[0.05] transition-colors">
                     <p className="text-3xl font-bold text-primary-light">{avgRating.toFixed(1)}</p>
                     <p className="text-slate-400 text-sm mt-1">Avg Rating</p>
                 </div>
-                <div className="card text-center py-6">
+                <div className="card text-center py-6 hover:bg-white/[0.05] transition-colors">
                     <p className="text-3xl font-bold text-accent">{profile.total_reviews}</p>
                     <p className="text-slate-400 text-sm mt-1">Reviews</p>
                 </div>
-                <div className="card text-center py-6">
+                <div className="card text-center py-6 hover:bg-white/[0.05] transition-colors">
                     <p className="text-3xl font-bold text-purple-400">
                         {isUserOnline(profile.id) ? '🟢' : '⚫'}
                     </p>
@@ -233,10 +258,10 @@ export default function ProfilePage() {
                         </p>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Active Learning Requests - NEW SECTION */}
-            <section aria-labelledby="requests-heading">
+            {/* Active Learning Requests */}
+            <motion.section variants={itemVariants} aria-labelledby="requests-heading">
                 <h2 id="requests-heading" className="text-lg font-semibold mb-4 text-slate-300">
                     Active Learning Requests
                 </h2>
@@ -246,55 +271,64 @@ export default function ProfilePage() {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {posts.map((post) => (
-                            <div key={post.id} className="card hover:border-primary/50 transition-colors flex items-center justify-between gap-4">
-                                <div>
-                                    <p className="text-lg">
-                                        Wants to learn <span className="text-primary-light font-bold">{post.topic_to_learn}</span>
-                                    </p>
-                                    {post.topic_to_teach && (
-                                        <p className="text-slate-400 text-sm mt-1">
-                                            Can teach: <span className="text-accent">{post.topic_to_teach}</span>
+                        <AnimatePresence>
+                            {posts.map((post) => (
+                                <motion.div
+                                    key={post.id}
+                                    layout
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    className="card hover:border-primary/50 transition-colors flex items-center justify-between gap-4"
+                                >
+                                    <div>
+                                        <p className="text-lg">
+                                            Wants to learn <span className="text-primary-light font-bold">{post.topic_to_learn}</span>
                                         </p>
-                                    )}
-                                    <div className="flex items-center gap-2 mt-2">
-                                        {post.ok_with_just_learning && (
-                                            <span className="inline-block px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded">
-                                                Learning only
-                                            </span>
+                                        {post.topic_to_teach && (
+                                            <p className="text-slate-400 text-sm mt-1">
+                                                Can teach: <span className="text-accent">{post.topic_to_teach}</span>
+                                            </p>
                                         )}
-                                        {post.bounty_enabled && (
-                                            <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                                                💰 Bounty
-                                            </span>
-                                        )}
+                                        <div className="flex items-center gap-2 mt-2">
+                                            {post.ok_with_just_learning && (
+                                                <span className="inline-block px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded">
+                                                    Learning only
+                                                </span>
+                                            )}
+                                            {post.bounty_enabled && (
+                                                <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                                                    💰 Bounty
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {!isOwnProfile && (
-                                    <button
-                                        onClick={() => handleConnect(post)}
-                                        disabled={connectingPostId === post.id}
-                                        className="btn-primary"
-                                    >
-                                        {connectingPostId === post.id ? (
-                                            <span className="flex items-center gap-2">
-                                                <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Connecting...
-                                            </span>
-                                        ) : (
-                                            'Connect'
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                                    {!isOwnProfile && (
+                                        <button
+                                            onClick={() => handleConnect(post)}
+                                            disabled={connectingPostId === post.id}
+                                            className="btn-primary"
+                                        >
+                                            {connectingPostId === post.id ? (
+                                                <span className="flex items-center gap-2">
+                                                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Connecting...
+                                                </span>
+                                            ) : (
+                                                'Connect'
+                                            )}
+                                        </button>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 )}
-            </section>
+            </motion.section>
 
             {/* Reviews Section */}
-            <section>
+            <motion.section variants={itemVariants}>
                 <h2 className="text-lg font-semibold mb-4 text-slate-300">Reviews</h2>
 
                 {reviews.length === 0 ? (
@@ -315,21 +349,21 @@ export default function ProfilePage() {
                         ))}
                     </div>
                 )}
-            </section>
+            </motion.section>
 
             {/* Profile Menu (only for own profile) */}
             {isOwnProfile && (
-                <nav className="card divide-y divide-slate-700" role="navigation" aria-label="Profile menu">
-                    <Link to="/sessions" className="flex items-center gap-4 py-4 hover:text-primary-light transition-colors">
-                        <span className="text-xl">📚</span>
+                <motion.nav variants={itemVariants} className="card divide-y divide-slate-700" role="navigation" aria-label="Profile menu">
+                    <Link to="/sessions" className="flex items-center gap-4 py-4 hover:text-primary-light transition-colors group">
+                        <span className="text-xl group-hover:scale-125 transition-transform duration-300">📚</span>
                         <span>My Sessions</span>
                     </Link>
-                    <Link to="/search" className="flex items-center gap-4 py-4 hover:text-primary-light transition-colors">
-                        <span className="text-xl">🔍</span>
+                    <Link to="/search" className="flex items-center gap-4 py-4 hover:text-primary-light transition-colors group">
+                        <span className="text-xl group-hover:scale-125 transition-transform duration-300">🔍</span>
                         <span>Find Sessions</span>
                     </Link>
-                </nav>
+                </motion.nav>
             )}
-        </div>
+        </motion.div>
     )
 }

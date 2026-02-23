@@ -5,7 +5,27 @@ import { useSessionsStore } from '@/stores/sessionsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { usePresenceStore } from '@/stores/presenceStore'
 import api from '@/lib/api'
-import type { LearningPost } from '@/types'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LearningPost } from '@/types'
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.05
+        }
+    }
+} as const
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.4, ease: "easeOut" }
+    }
+} as const
 
 // Simple User Interface
 interface SearchedUser {
@@ -157,9 +177,14 @@ export default function SearchPage() {
         })
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+        <div className="max-w-4xl mx-auto space-y-8 pb-12">
             {/* Search Box - Center Focus */}
-            <section className="card" aria-labelledby="search-heading">
+            <motion.section
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="card"
+                aria-labelledby="search-heading"
+            >
                 <h2 id="search-heading" className="text-xl font-bold mb-6 text-center">
                     Create a Learning Request
                 </h2>
@@ -231,7 +256,7 @@ export default function SearchPage() {
                         )}
                     </button>
                 </form>
-            </section>
+            </motion.section>
 
             {/* Error Display */}
             {error && (
@@ -254,32 +279,39 @@ export default function SearchPage() {
                             Searching users...
                         </div>
                     ) : searchedUsers.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <motion.div
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                        >
                             {searchedUsers.map(u => (
-                                <Link key={u.id} to={`/user/${u.id}`} className="card hover:border-primary/50 transition-colors flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-lg font-bold">
-                                        {u.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-white">{u.name}</p>
-                                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                                            {u.average_rating ? (
-                                                <span className="text-yellow-400">★ {u.average_rating.toFixed(1)}</span>
-                                            ) : (
-                                                <span>No ratings</span>
-                                            )}
-                                            {u.is_online ? (
-                                                <span className="text-green-500">• Online</span>
-                                            ) : u.availability ? (
-                                                <span className="text-slate-500 text-[10px]">• {u.availability}</span>
-                                            ) : (
-                                                <span className="text-slate-600">• Offline</span>
-                                            )}
+                                <motion.div key={u.id} variants={itemVariants}>
+                                    <Link to={`/user/${u.id}`} className="card hover:border-primary/50 transition-colors flex items-center gap-4 h-full">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-lg font-bold">
+                                            {u.name.charAt(0).toUpperCase()}
                                         </div>
-                                    </div>
-                                </Link>
+                                        <div>
+                                            <p className="font-medium text-white">{u.name}</p>
+                                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                                {u.average_rating ? (
+                                                    <span className="text-yellow-400">★ {u.average_rating.toFixed(1)}</span>
+                                                ) : (
+                                                    <span>No ratings</span>
+                                                )}
+                                                {u.is_online ? (
+                                                    <span className="text-green-500">• Online</span>
+                                                ) : u.availability ? (
+                                                    <span className="text-slate-500 text-[10px]">• {u.availability}</span>
+                                                ) : (
+                                                    <span className="text-slate-600">• Offline</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     ) : (
                         <p className="text-slate-500 italic">No users found matching "{searchQuery}"</p>
                     )}
@@ -381,88 +413,98 @@ export default function SearchPage() {
                         )}
                     </div>
                 ) : (
-                    <ul className="space-y-4">
-                        {displayPosts.map((post, index) => (
-                            <li
-                                key={post.id}
-                                className="card hover:border-primary/50 transition-colors animate-slide-up"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <Link
-                                                to={`/user/${post.creator_id}`}
-                                                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-bold relative">
-                                                    {post.creator_name.charAt(0).toUpperCase()}
-                                                    <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-surface ${isUserOnline(post.creator_id) ? 'bg-green-500' : 'bg-slate-500'
-                                                        }`} />
-                                                </div>
-                                                <span className="font-medium hover:text-primary-light transition-colors">
-                                                    {post.creator_name}
-                                                </span>
-                                            </Link>
-                                            {post.creator_rating !== null && (
-                                                <span className="text-yellow-400 text-sm">★ {Number(post.creator_rating).toFixed(1)}</span>
-                                            )}
-                                        </div>
-
-                                        <p className="text-lg">
-                                            Wants to learn <span className="text-primary-light font-semibold">{post.topic_to_learn}</span>
-                                        </p>
-
-                                        {post.topic_to_teach && (
-                                            <p className="text-slate-400 mt-1">
-                                                Can teach: <span className="text-accent">{post.topic_to_teach}</span>
-                                            </p>
-                                        )}
-
-                                        <div className="flex items-center gap-2 mt-2">
-                                            {post.ok_with_just_learning && (
-                                                <span className="inline-block px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded">
-                                                    Learning only
-                                                </span>
-                                            )}
-                                            {post.bounty_enabled && (
-                                                <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                                                    💰 Bounty
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="flex flex-col gap-2">
-                                        {showMyPosts ? (
-                                            <button
-                                                onClick={() => handleMarkCompleted(post.id)}
-                                                className="btn-secondary text-sm"
-                                            >
-                                                Mark Done
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleConnect(post)}
-                                                disabled={connectingPostId === post.id}
-                                                className="btn-primary text-sm"
-                                            >
-                                                {connectingPostId === post.id ? (
-                                                    <span className="flex items-center gap-2">
-                                                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                        Connecting...
+                    <motion.ul
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        key={showMyPosts ? 'my-posts' : 'all-posts'}
+                        className="space-y-4"
+                    >
+                        <AnimatePresence mode="popLayout">
+                            {displayPosts.map((post) => (
+                                <motion.li
+                                    key={post.id}
+                                    variants={itemVariants}
+                                    layout
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="card hover:border-primary/50 transition-colors"
+                                >
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <Link
+                                                    to={`/user/${post.creator_id}`}
+                                                    className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-bold relative">
+                                                        {post.creator_name.charAt(0).toUpperCase()}
+                                                        <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-surface ${isUserOnline(post.creator_id) ? 'bg-green-500' : 'bg-slate-500'
+                                                            }`} />
+                                                    </div>
+                                                    <span className="font-medium hover:text-primary-light transition-colors">
+                                                        {post.creator_name}
                                                     </span>
-                                                ) : (
-                                                    'Connect'
+                                                </Link>
+                                                {post.creator_rating !== null && (
+                                                    <span className="text-yellow-400 text-sm">★ {Number(post.creator_rating).toFixed(1)}</span>
                                                 )}
-                                            </button>
-                                        )}
+                                            </div>
+
+                                            <p className="text-lg">
+                                                Wants to learn <span className="text-primary-light font-semibold">{post.topic_to_learn}</span>
+                                            </p>
+
+                                            {post.topic_to_teach && (
+                                                <p className="text-slate-400 mt-1">
+                                                    Can teach: <span className="text-accent">{post.topic_to_teach}</span>
+                                                </p>
+                                            )}
+
+                                            <div className="flex items-center gap-2 mt-2">
+                                                {post.ok_with_just_learning && (
+                                                    <span className="inline-block px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded">
+                                                        Learning only
+                                                    </span>
+                                                )}
+                                                {post.bounty_enabled && (
+                                                    <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                                                        💰 Bounty
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex flex-col gap-2">
+                                            {showMyPosts ? (
+                                                <button
+                                                    onClick={() => handleMarkCompleted(post.id)}
+                                                    className="btn-secondary text-sm"
+                                                >
+                                                    Mark Done
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleConnect(post)}
+                                                    disabled={connectingPostId === post.id}
+                                                    className="btn-primary text-sm"
+                                                >
+                                                    {connectingPostId === post.id ? (
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                            Connecting...
+                                                        </span>
+                                                    ) : (
+                                                        'Connect'
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                                </motion.li>
+                            ))}
+                        </AnimatePresence>
+                    </motion.ul>
                 )}
             </section>
         </div >
