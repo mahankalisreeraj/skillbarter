@@ -8,18 +8,23 @@ export default {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: '#6366f1',
-                    dark: '#4f46e5',
-                    light: '#818cf8',
+                    DEFAULT: '#8b5cf6', // Violet 500
+                    dark: '#7c3aed',    // Violet 600
+                    light: '#a78bfa',   // Violet 400
+                },
+                secondary: {
+                    DEFAULT: '#ec4899', // Pink 500
+                    dark: '#db2777',    // Pink 600
+                    light: '#fb7185',   // Rose 400
                 },
                 accent: {
-                    DEFAULT: '#10b981',
-                    dark: '#059669',
+                    DEFAULT: '#06b6d4', // Cyan 500
+                    dark: '#0891b2',    // Cyan 600
                 },
                 surface: {
-                    DEFAULT: '#1e293b',
-                    elevated: '#334155',
-                    dark: '#0f172a',
+                    DEFAULT: '#0f172a', // Slate 900
+                    elevated: '#1e293b', // Slate 800
+                    dark: '#020617',    // Slate 950
                 },
             },
             fontFamily: {
