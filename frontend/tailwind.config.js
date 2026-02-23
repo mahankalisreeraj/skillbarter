@@ -8,23 +8,23 @@ export default {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: '#f05b72', // Coral Pink
-                    dark: '#d14a5d',
-                    light: '#f48091',
+                    DEFAULT: '#c084fc', // Purple 400
+                    dark: '#a855f7',    // Purple 500
+                    light: '#e9d5ff',   // Purple 200
                 },
                 secondary: {
-                    DEFAULT: '#fba063', // Sunset Orange
-                    dark: '#e08a4d',
-                    light: '#fdb88b',
+                    DEFAULT: '#d8b4fe', // Purple 300
+                    dark: '#c084fc',
+                    light: '#f3e8ff',   // Purple 100
                 },
                 accent: {
-                    DEFAULT: '#ffd25e', // Golden Yellow
-                    dark: '#e6bd4d',
+                    DEFAULT: '#f3e8ff', // Very light purple
+                    dark: '#d8b4fe',
                 },
                 surface: {
-                    DEFAULT: '#2d5a27', // Forest Teal
-                    elevated: '#3a7231',
-                    dark: '#1e293b', // Deep Slate for background
+                    DEFAULT: '#1e1b4b', // Deep Indigo (Indigo 900)
+                    elevated: '#312e81', // Indigo 800
+                    dark: '#0b0a1a',    // Very dark violet-black
                 },
             },
             fontFamily: {
