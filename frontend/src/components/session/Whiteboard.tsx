@@ -117,12 +117,12 @@ export default function Whiteboard({ sessionId, isVisible, onSendData }: Whitebo
 
 
     return (
-        <div className="h-full w-full bg-slate-900 overflow-hidden">
+        <div className="h-full w-full bg-surface border-t border-primary/10 overflow-hidden">
             <Excalidraw
                 excalidrawAPI={(api) => setExcalidrawAPI(api)}
                 initialData={initialData}
                 onChange={onChange}
-                theme="dark"
+                theme="light"
                 viewModeEnabled={false}
                 zenModeEnabled={false}
                 gridModeEnabled={false}

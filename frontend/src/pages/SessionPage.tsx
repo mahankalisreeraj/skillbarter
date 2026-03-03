@@ -50,7 +50,7 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
 
     return (
         <div className={clsx('flex flex-col', className)}>
-            <div className="p-3 border-b border-slate-700 flex items-center justify-between">
+            <div className="p-3 border-b border-primary/10 flex items-center justify-between">
                 <h3 className="font-semibold">Chat</h3>
                 <span className={clsx(
                     'w-2 h-2 rounded-full',
@@ -73,15 +73,15 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
                                 )}
                             >
                                 <div className="flex items-baseline gap-2 mb-1">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{msg.sender_name}</span>
-                                    <span className="text-[10px] text-slate-500">{formatTimestamp(msg.timestamp)}</span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{msg.sender_name}</span>
+                                    <span className="text-[10px] text-slate-400">{formatTimestamp(msg.timestamp)}</span>
                                 </div>
                                 <div
                                     className={clsx(
                                         'px-3 py-2 rounded-2xl text-sm shadow-sm',
                                         isMe
                                             ? 'bg-primary text-white rounded-tr-none'
-                                            : 'bg-slate-700 text-slate-200 rounded-tl-none'
+                                            : 'bg-slate-100 text-slate-700 rounded-tl-none'
                                     )}
                                 >
                                     {msg.message}
@@ -92,7 +92,7 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
                 )}
             </div>
 
-            <form onSubmit={handleSubmit} className="p-3 border-t border-slate-700">
+            <form onSubmit={handleSubmit} className="p-3 border-t border-primary/10">
                 <div className="flex gap-2">
                     <input
                         type="text"
@@ -200,8 +200,8 @@ export default function SessionPage() {
         return (
             <div className="flex flex-col items-center justify-center h-64 gap-4 animate-fade-in">
                 <div className="text-center space-y-2">
-                    <p className="text-slate-400 text-lg">Loading session or invalid session ID...</p>
-                    <p className="text-xs text-slate-500 font-mono">
+                    <p className="text-slate-500 text-lg">Loading session or invalid session ID...</p>
+                    <p className="text-xs text-slate-400 font-mono">
                         Debug: ID={sessionId || 'missing'}, User={user ? 'present' : 'missing'}
                     </p>
                 </div>
@@ -236,16 +236,16 @@ export default function SessionPage() {
                     <div className="flex items-center gap-2">
                         <span className={clsx(
                             'w-2 h-2 rounded-full',
-                            sessionSocket.isConnected ? 'bg-green-500' : 'bg-slate-500'
+                            sessionSocket.isConnected ? 'bg-green-500' : 'bg-slate-300'
                         )} />
-                        <span className="text-sm text-slate-400">
+                        <span className="text-sm text-slate-500">
                             {sessionSocket.isConnected ? 'Connected' : 'Connecting...'}
                         </span>
                     </div>
                 </div>
 
                 {/* Mode Switcher */}
-                <div className="flex items-center gap-1 p-1 bg-surface-elevated rounded-lg">
+                <div className="flex items-center gap-1 p-1 bg-primary/5 rounded-lg">
                     {modes.map((mode) => (
                         <button
                             key={mode.id}
@@ -254,7 +254,7 @@ export default function SessionPage() {
                                 'px-4 py-2 rounded-md text-sm font-medium transition-all',
                                 activeMode === mode.id
                                     ? 'bg-primary text-white shadow-lg'
-                                    : 'text-slate-400 hover:text-white hover:bg-surface'
+                                    : 'text-slate-500 hover:text-primary hover:bg-primary/5'
                             )}
                         >
                             <span className="mr-2">{mode.icon}</span>
@@ -366,7 +366,7 @@ export default function SessionPage() {
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in">
                     <div className="card max-w-md w-full mx-4">
                         <h2 className="text-xl font-bold mb-4">Session Ended</h2>
-                        <p className="text-slate-400 mb-6">
+                        <p className="text-slate-500 mb-6">
                             Your session with {peerName} has ended.
                             Would you like to leave a review?
                         </p>

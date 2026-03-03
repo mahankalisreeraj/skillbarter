@@ -32,14 +32,14 @@ export default function AvailabilityModal({ isOpen, onClose, onConfirm }: Availa
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
             <div className="card w-full max-w-md p-6 space-y-4">
-                <h2 className="text-xl font-bold">Update Availability</h2>
-                <p className="text-slate-400 text-sm">
+                <h2 className="text-xl font-bold text-slate-800">Update Availability</h2>
+                <p className="text-slate-500 text-sm">
                     You have active learning requests. Please let others know when you are available to chat or meet.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label htmlFor="availability" className="block text-sm font-medium text-slate-300 mb-2">
+                        <label htmlFor="availability" className="block text-sm font-medium text-slate-700 mb-2">
                             Availability (e.g., "Weekdays 6PM - 9PM EST")
                         </label>
                         <input
@@ -57,8 +57,16 @@ export default function AvailabilityModal({ isOpen, onClose, onConfirm }: Availa
                     <div className="flex justify-end gap-3 pt-2">
                         <button
                             type="button"
-                            onClick={onConfirm} // Skip updates and logout
+                            onClick={onClose}
                             className="btn-ghost"
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onConfirm} // Skip updates and logout
+                            className="px-4 py-2 text-sm text-slate-500 hover:text-primary transition-colors"
                             disabled={isSubmitting}
                         >
                             Skip & Logout

@@ -72,18 +72,18 @@ export default function SessionTimer({
         <div className="p-4 bg-surface-elevated rounded-lg transition-all duration-300">
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">
+                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">
                         Teaching Timer
                     </p>
-                    <p className={`text-4xl font-mono font-bold transition-colors ${isRunning ? 'text-accent' : 'text-slate-300'}`}>
+                    <p className={`text-4xl font-mono font-bold transition-colors ${isRunning ? 'text-primary' : 'text-slate-400'}`}>
                         {formatTime(totalSeconds)}
                     </p>
 
                     {isRunning && (
                         <div className="flex flex-col gap-1 mt-2 animate-fade-in">
                             <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                                <span className="text-sm text-accent font-medium">
+                                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                <span className="text-sm text-primary font-medium">
                                     ~{creditsEarned} credits earned
                                 </span>
                             </div>
@@ -126,9 +126,9 @@ export default function SessionTimer({
                 </p>
             )}
 
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-500 border-t border-slate-700/50 pt-2">
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-500 border-t border-primary/10 pt-2">
                 <span>5 min = 1 credit • Bank takes 10% cut</span>
-                <span className="text-primary-light font-medium">
+                <span className="text-primary font-medium">
                     Your credits: {Number(yourCredits).toFixed(2)}
                 </span>
             </div>

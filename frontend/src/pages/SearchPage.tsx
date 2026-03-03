@@ -191,7 +191,7 @@ export default function SearchPage() {
 
                 <form onSubmit={handleSearch} className="space-y-4">
                     <div>
-                        <label htmlFor="topic-learn" className="block text-sm font-medium text-slate-300 mb-2">
+                        <label htmlFor="topic-learn" className="block text-sm font-medium text-slate-600 mb-2">
                             I want to learn...
                         </label>
                         <input
@@ -207,7 +207,7 @@ export default function SearchPage() {
                     </div>
 
                     <div>
-                        <label htmlFor="topic-teach" className="block text-sm font-medium text-slate-300 mb-2">
+                        <label htmlFor="topic-teach" className="block text-sm font-medium text-slate-600 mb-2">
                             I can teach...
                         </label>
                         <input
@@ -228,9 +228,9 @@ export default function SearchPage() {
                             type="checkbox"
                             checked={okWithJustLearning}
                             onChange={(e) => setOkWithJustLearning(e.target.checked)}
-                            className="w-5 h-5 rounded border-slate-600 bg-surface text-primary focus:ring-primary"
+                            className="w-5 h-5 rounded border-primary/30 bg-surface text-primary focus:ring-primary"
                         />
-                        <label htmlFor="learning-only" className="text-sm text-slate-300">
+                        <label htmlFor="learning-only" className="text-sm text-slate-600">
                             I'm ok with just learning (will cost credits)
                         </label>
                     </div>
@@ -269,12 +269,12 @@ export default function SearchPage() {
             {/* User Search Results */}
             {searchQuery && (
                 <section aria-labelledby="users-heading">
-                    <h2 id="users-heading" className="text-lg font-semibold text-slate-300 mb-4">
+                    <h2 id="users-heading" className="text-lg font-semibold text-slate-700 mb-4">
                         Users matching "{searchQuery}"
                     </h2>
 
                     {isSearchingUsers ? (
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-slate-500">
                             <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                             Searching users...
                         </div>
@@ -292,8 +292,8 @@ export default function SearchPage() {
                                             {u.name.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <p className="font-medium text-white">{u.name}</p>
-                                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                                            <p className="font-medium text-slate-900">{u.name}</p>
+                                            <div className="flex items-center gap-2 text-xs text-slate-500">
                                                 {u.average_rating ? (
                                                     <span className="text-yellow-400">★ {u.average_rating.toFixed(1)}</span>
                                                 ) : (
@@ -320,12 +320,12 @@ export default function SearchPage() {
 
             {/* Filters Row */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="flex items-center gap-2 p-1 bg-surface-elevated rounded-lg w-fit">
+                <div className="flex items-center gap-2 p-1 bg-primary/5 rounded-lg w-fit">
                     <button
                         onClick={() => setShowMyPosts(false)}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${!showMyPosts
                             ? 'bg-primary text-white shadow-lg'
-                            : 'text-slate-400 hover:text-white hover:bg-surface'
+                            : 'text-slate-500 hover:text-primary hover:bg-primary/5'
                             }`}
                     >
                         All Requests
@@ -334,7 +334,7 @@ export default function SearchPage() {
                         onClick={() => setShowMyPosts(true)}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${showMyPosts
                             ? 'bg-primary text-white shadow-lg'
-                            : 'text-slate-400 hover:text-white hover:bg-surface'
+                            : 'text-slate-500 hover:text-primary hover:bg-primary/5'
                             }`}
                     >
                         My Posts ({myPosts.filter(p => !p.is_completed).length})
@@ -346,8 +346,8 @@ export default function SearchPage() {
                         <button
                             onClick={() => setOkWithJustLearning(!okWithJustLearning)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border flex items-center gap-2 ${okWithJustLearning
-                                ? 'bg-green-500/20 text-green-400 border-green-500/50'
-                                : 'bg-surface-elevated text-slate-400 border-transparent hover:text-white'
+                                ? 'bg-green-500/10 text-green-600 border-green-500/30'
+                                : 'bg-primary/5 text-slate-500 border-primary/10 hover:text-primary'
                                 }`}
                             title="Show only requests offering credits"
                         >
@@ -361,7 +361,7 @@ export default function SearchPage() {
             {/* Posts Feed */}
             <section aria-labelledby="feed-heading">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 id="feed-heading" className="text-lg font-semibold text-slate-300">
+                    <h2 id="feed-heading" className="text-lg font-semibold text-slate-700">
                         {showMyPosts ? 'My Learning Posts' : relevanceFilter ? `Matching Results for "${relevanceFilter.learn}"` : 'Active Learning Requests'}
                     </h2>
                     <div className="flex items-center gap-3">
@@ -378,7 +378,7 @@ export default function SearchPage() {
                                 fetchPosts()
                                 fetchMyPosts()
                             }}
-                            className="text-sm text-slate-400 hover:text-white flex items-center gap-1"
+                            className="text-sm text-slate-500 hover:text-primary flex items-center gap-1"
                             disabled={isLoading}
                         >
                             <span className={isLoading ? 'animate-spin' : ''}>↻</span> Refresh
@@ -390,11 +390,11 @@ export default function SearchPage() {
                     <div className="card py-12">
                         <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                            <p className="text-slate-400">Loading posts...</p>
+                            <p className="text-slate-500">Loading posts...</p>
                         </div>
                     </div>
                 ) : displayPosts.length === 0 ? (
-                    <div className="card text-center py-12 text-slate-400">
+                    <div className="card text-center py-12 text-slate-500">
                         <p className="text-xl mb-2">🔍</p>
                         <p>
                             {showMyPosts
@@ -406,7 +406,7 @@ export default function SearchPage() {
                         {relevanceFilter && (
                             <button
                                 onClick={() => setRelevanceFilter(null)}
-                                className="mt-3 text-sm text-primary-light hover:underline"
+                                className="mt-3 text-sm text-primary hover:underline"
                             >
                                 Show all requests
                             </button>
@@ -436,12 +436,12 @@ export default function SearchPage() {
                                                     to={`/user/${post.creator_id}`}
                                                     className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                                                 >
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-bold relative">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-sm font-bold relative">
                                                         {post.creator_name.charAt(0).toUpperCase()}
-                                                        <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-surface ${isUserOnline(post.creator_id) ? 'bg-green-500' : 'bg-slate-500'
+                                                        <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${isUserOnline(post.creator_id) ? 'bg-green-500' : 'bg-slate-300'
                                                             }`} />
                                                     </div>
-                                                    <span className="font-medium hover:text-primary-light transition-colors">
+                                                    <span className="font-medium hover:text-primary transition-colors">
                                                         {post.creator_name}
                                                     </span>
                                                 </Link>
@@ -451,12 +451,12 @@ export default function SearchPage() {
                                             </div>
 
                                             <p className="text-lg">
-                                                Wants to learn <span className="text-primary-light font-semibold">{post.topic_to_learn}</span>
+                                                Wants to learn <span className="text-primary font-semibold">{post.topic_to_learn}</span>
                                             </p>
 
                                             {post.topic_to_teach && (
-                                                <p className="text-slate-400 mt-1">
-                                                    Can teach: <span className="text-accent">{post.topic_to_teach}</span>
+                                                <p className="text-slate-500 mt-1">
+                                                    Can teach: <span className="text-accent-dark">{post.topic_to_teach}</span>
                                                 </p>
                                             )}
 

@@ -45,8 +45,8 @@ export default function ReviewForm({ sessionId, onComplete, onSkip }: ReviewForm
         return (
             <div className="text-center py-4">
                 <span className="text-4xl mb-4 block">✅</span>
-                <p className="text-lg font-medium">Thank you for your review!</p>
-                <p className="text-slate-400 text-sm mt-2">Your feedback helps our community.</p>
+                <p className="text-lg font-medium text-slate-800">Thank you for your review!</p>
+                <p className="text-slate-500 text-sm mt-2">Your feedback helps our community.</p>
             </div>
         )
     }
@@ -61,7 +61,7 @@ export default function ReviewForm({ sessionId, onComplete, onSkip }: ReviewForm
 
             {/* Star Rating */}
             <div>
-                <p className="text-sm text-slate-400 mb-3 text-center">How was your experience?</p>
+                <p className="text-sm text-slate-500 mb-3 text-center">How was your experience?</p>
                 <div className="flex justify-center gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -81,7 +81,7 @@ export default function ReviewForm({ sessionId, onComplete, onSkip }: ReviewForm
 
             {/* Comment */}
             <div>
-                <label htmlFor="comment" className="block text-sm font-medium text-slate-300 mb-2">
+                <label htmlFor="comment" className="block text-sm font-medium text-slate-700 mb-2">
                     Comment (optional)
                 </label>
                 <textarea

@@ -8,23 +8,23 @@ export default {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: '#c084fc', // Purple 400
-                    dark: '#a855f7',    // Purple 500
-                    light: '#e9d5ff',   // Purple 200
+                    DEFAULT: '#F5AFAF', // Soft Coral Pink
+                    dark: '#E89393',    // Darker pink
+                    light: '#FACBCB',   // Lighter pink
                 },
                 secondary: {
-                    DEFAULT: '#d8b4fe', // Purple 300
-                    dark: '#c084fc',
-                    light: '#f3e8ff',   // Purple 100
+                    DEFAULT: '#F9DFDF', // Light Pink
+                    dark: '#F5AFAF',
+                    light: '#FBEFEF',   // Very Light Pink
                 },
                 accent: {
-                    DEFAULT: '#f3e8ff', // Very light purple
-                    dark: '#d8b4fe',
+                    DEFAULT: '#FBEFEF', // Accent Pink
+                    dark: '#F9DFDF',
                 },
                 surface: {
-                    DEFAULT: '#1e1b4b', // Deep Indigo (Indigo 900)
-                    elevated: '#312e81', // Indigo 800
-                    dark: '#0b0a1a',    // Very dark violet-black
+                    DEFAULT: '#FCF8F8', // Main Surface (White-Pink)
+                    elevated: '#FFFFFF',
+                    dark: '#F7F2F2',    // Background Dark
                 },
             },
             fontFamily: {

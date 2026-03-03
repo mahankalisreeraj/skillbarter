@@ -318,24 +318,24 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
                         className="w-full h-full object-cover mirror-mode"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500 text-xs">
+                    <div className="w-full h-full flex items-center justify-center bg-surface text-slate-400 text-xs">
                         Video Off
                     </div>
                 )}
             </div>
 
             {/* Controls */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 p-3 bg-slate-900/80 backdrop-blur-md rounded-full border border-white/10 z-20 shadow-xl">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 p-3 bg-white/80 backdrop-blur-md rounded-full border border-primary/10 z-20 shadow-xl">
                 <button
                     onClick={toggleMute}
-                    className={`p-4 rounded-full transition-all duration-200 ${isMuted ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-slate-700/50 text-white hover:bg-slate-700'}`}
+                    className={`p-4 rounded-full transition-all duration-200 ${isMuted ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
                     title={isMuted ? "Unmute" : "Mute"}
                 >
                     {isMuted ? '🔇' : '🎤'}
                 </button>
                 <button
                     onClick={toggleVideo}
-                    className={`p-4 rounded-full transition-all duration-200 ${isVideoOff ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-slate-700/50 text-white hover:bg-slate-700'}`}
+                    className={`p-4 rounded-full transition-all duration-200 ${isVideoOff ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
                     title={isVideoOff ? "Start Video" : "Stop Video"}
                 >
                     {isVideoOff ? '🚫' : '📹'}

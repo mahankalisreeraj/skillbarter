@@ -37,12 +37,12 @@ export default function HomePage() {
                 <motion.h1 variants={itemVariants} className="text-4xl lg:text-6xl font-bold mb-6">
                     Learn anything.
                     <br />
-                    <span className="bg-gradient-to-r from-primary-light via-purple-400 to-accent bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-primary via-primary-dark to-primary-light bg-clip-text text-transparent">
                         Teach something.
                     </span>
                 </motion.h1>
 
-                <motion.p variants={itemVariants} className="text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+                <motion.p variants={itemVariants} className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">
                     A peer-to-peer learning platform where your time creates value.
                     Earn credits by teaching, spend them to learn.
                 </motion.p>
@@ -81,7 +81,7 @@ export default function HomePage() {
                             🎁
                         </div>
                         <h3 className="font-bold mb-2">Start with 15 Credits</h3>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-500 text-sm">
                             New users receive 15 free credits to begin their learning journey.
                         </p>
                     </motion.div>
@@ -91,17 +91,17 @@ export default function HomePage() {
                             ⏱️
                         </div>
                         <h3 className="font-bold mb-2">5 Minutes = 1 Credit</h3>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-500 text-sm">
                             Teach for 5 minutes to earn 1 credit. Learning costs the same rate.
                         </p>
                     </motion.div>
 
                     <motion.div variants={itemVariants} className="card text-center hover:scale-105 transition-transform duration-300">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center text-3xl">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-3xl">
                             🔄
                         </div>
                         <h3 className="font-bold mb-2">Exchange Knowledge</h3>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-slate-500 text-sm">
                             Match with peers who want to learn what you know, and vice versa.
                         </p>
                     </motion.div>
@@ -114,20 +114,20 @@ export default function HomePage() {
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 1 }}
-                className="py-12 border-t border-b border-slate-700/50"
+                className="py-12 border-t border-b border-primary/10"
             >
                 <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto text-center">
                     <div>
-                        <p className="text-3xl font-bold text-primary-light">10%</p>
-                        <p className="text-slate-400 text-sm">Platform Fee</p>
+                        <p className="text-3xl font-bold text-primary">10%</p>
+                        <p className="text-slate-500 text-sm">Platform Fee</p>
                     </div>
                     <div>
-                        <p className="text-3xl font-bold text-accent">Free</p>
-                        <p className="text-slate-400 text-sm">To Join</p>
+                        <p className="text-3xl font-bold text-accent-dark">Free</p>
+                        <p className="text-slate-500 text-sm">To Join</p>
                     </div>
                     <div>
-                        <p className="text-3xl font-bold text-purple-400">∞</p>
-                        <p className="text-slate-400 text-sm">Skills to Learn</p>
+                        <p className="text-3xl font-bold text-primary-dark">∞</p>
+                        <p className="text-slate-500 text-sm">Skills to Learn</p>
                     </div>
                 </div>
             </motion.section>

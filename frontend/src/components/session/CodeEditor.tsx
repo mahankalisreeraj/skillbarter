@@ -309,16 +309,16 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
     }
 
     return (
-        <div className="h-full flex flex-col bg-slate-900 overflow-hidden rounded-b-lg">
+        <div className="h-full flex flex-col bg-surface overflow-hidden rounded-b-lg">
             {/* IDE Header */}
-            <div className="flex items-center justify-between px-6 py-2 bg-slate-950 border-b border-primary/20 h-14">
+            <div className="flex items-center justify-between px-6 py-2 bg-white border-b border-primary/20 h-14">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
-                        <span className="text-xs uppercase font-extrabold text-slate-400 tracking-widest">Language:</span>
+                        <span className="text-xs uppercase font-extrabold text-slate-500 tracking-widest">Language:</span>
                         <select
                             value={activeFile?.language || 'javascript'}
                             onChange={(e) => handleLanguageChange(e.target.value)}
-                            className="bg-primary/20 text-sm text-white font-bold border-2 border-primary/50 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer hover:bg-primary/30"
+                            className="bg-primary/5 text-sm text-slate-800 font-bold border-2 border-primary/20 rounded-lg px-4 py-1.5 focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer hover:bg-primary/10"
                         >
                             <optgroup label="Web">
                                 <option value="javascript">JavaScript</option>
@@ -338,8 +338,8 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
                         onClick={runCode}
                         disabled={isRunning}
                         className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-bold text-xs tracking-wider transition-all ${isRunning
-                            ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20'
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20'
                             }`}
                     >
                         {isRunning ? 'RUNNING...' : '▶ RUN'}
@@ -354,26 +354,26 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
                                     .then(() => alert('Code copied!'))
                             }
                         }}
-                        className="text-[10px] font-bold text-slate-400 hover:text-white transition-colors bg-white/5 px-2 py-1 rounded"
+                        className="text-[10px] font-bold text-slate-500 hover:text-primary transition-colors bg-primary/5 px-2 py-1 rounded"
                     >
                         COPY CODE
                     </button>
-                    <span className="h-4 w-[1px] bg-white/10" />
+                    <span className="h-4 w-[1px] bg-primary/20" />
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-slate-400">SYNCED</span>
+                        <span className="text-[10px] font-bold text-slate-500">SYNCED</span>
                     </div>
                 </div>
             </div>
 
             <div className="flex-1 flex overflow-hidden">
                 {/* File Explorer */}
-                <div className="w-52 bg-slate-900 border-r border-white/5 flex flex-col">
-                    <div className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/5 flex justify-between items-center bg-slate-950">
+                <div className="w-52 bg-surface/50 border-r border-primary/10 flex flex-col">
+                    <div className="p-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-primary/10 flex justify-between items-center bg-white">
                         <span>Explorer</span>
                         <button
                             onClick={() => setIsCreatingFile(true)}
-                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 text-slate-400 hover:text-primary transition-all text-sm font-bold"
+                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-primary/5 text-slate-400 hover:text-primary transition-all text-sm font-bold"
                             title="New File"
                         >
                             +
@@ -383,16 +383,16 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
                     <div className="flex-1 overflow-y-auto py-2">
                         {isCreatingFile && (
                             <div className="px-3 py-1">
-                                <input
+                                <div
                                     autoFocus
-                                    className="w-full bg-slate-800 border border-primary/50 rounded px-2 py-1 text-xs text-white focus:outline-none placeholder-slate-600"
+                                    className="w-full bg-white border border-primary/30 rounded px-2 py-1 text-xs text-slate-800 focus:outline-none placeholder-slate-400"
                                     placeholder="name.py"
                                     value={newFileName}
                                     onChange={e => setNewFileName(e.target.value)}
                                     onBlur={addNewFile}
                                     onKeyDown={e => e.key === 'Enter' && addNewFile()}
                                 />
-                                <p className="text-[8px] text-slate-500 mt-1 italic">Press Enter to save</p>
+                                <p className="text-[8px] text-slate-400 mt-1 italic">Press Enter to save</p>
                             </div>
                         )}
                         {files.map((file, i) => (
@@ -403,13 +403,13 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
                                     'w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center justify-between group cursor-pointer border-l-2',
                                     activeFileIndex === i
                                         ? 'bg-primary/10 text-primary border-primary'
-                                        : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border-transparent'
+                                        : 'text-slate-500 hover:bg-primary/5 hover:text-primary border-transparent'
                                 )}
                             >
                                 <div className="flex items-center gap-2 truncate">
                                     <span className={clsx(
                                         "w-6 text-[10px] font-bold text-center py-0.5 rounded uppercase",
-                                        activeFileIndex === i ? "bg-primary text-white" : "bg-white/10 text-slate-400"
+                                        activeFileIndex === i ? "bg-primary text-white" : "bg-primary/10 text-primary"
                                     )}>
                                         {getIcon(file.language)}
                                     </span>
@@ -432,16 +432,16 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
                 {/* Editor Area */}
                 <div className="flex-1 flex flex-col min-w-0">
                     {/* Tabs */}
-                    <div className="flex bg-slate-950 border-b border-white/5 overflow-x-auto no-scrollbar h-10">
+                    <div className="flex bg-white border-b border-primary/10 overflow-x-auto no-scrollbar h-10">
                         {files.map((file, i) => (
                             <div
                                 key={file.name + i}
                                 onClick={() => selectFile(i)}
                                 className={clsx(
-                                    'px-4 py-2 text-xs cursor-pointer border-r border-white/5 transition-all min-w-[140px] flex items-center justify-between group relative',
+                                    'px-4 py-2 text-xs cursor-pointer border-r border-primary/10 transition-all min-w-[140px] flex items-center justify-between group relative',
                                     activeFileIndex === i
-                                        ? 'bg-slate-900 text-slate-100'
-                                        : 'bg-slate-950 text-slate-500 hover:text-slate-300'
+                                        ? 'bg-surface text-slate-800'
+                                        : 'bg-white text-slate-500 hover:text-primary'
                                 )}
                             >
                                 <span className="truncate mr-2 font-medium">{file.name}</span>
@@ -451,12 +451,12 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
                     </div>
 
                     {/* Monaco Content */}
-                    <div className="flex-1 relative overflow-hidden bg-[#1e1e1e]">
+                    <div className="flex-1 relative overflow-hidden bg-white">
                         {activeFile && (
                             <Editor
                                 height="100%"
                                 language={activeFile.language}
-                                theme="vs-dark"
+                                theme="light"
                                 onMount={handleEditorMount}
                                 onChange={handleChange}
                                 options={{
@@ -504,27 +504,27 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
 
             {/* Output Panel */}
             {isOutputVisible && (
-                <div className="h-48 bg-[#1e1e1e] border-t border-white/10 flex flex-col font-mono text-xs">
-                    <div className="flex items-center justify-between px-4 py-1 bg-black/40 border-b border-white/5">
-                        <span className="font-bold text-slate-400">TERMINAL OUTPUT</span>
+                <div className="h-48 bg-white border-t border-primary/20 flex flex-col font-mono text-xs">
+                    <div className="flex items-center justify-between px-4 py-1 bg-primary/5 border-b border-primary/10">
+                        <span className="font-bold text-slate-500">TERMINAL OUTPUT</span>
                         <button
                             onClick={(e) => { e.stopPropagation(); setOutput(null); }}
-                            className="text-[10px] text-slate-500 hover:text-white"
+                            className="text-[10px] text-slate-400 hover:text-primary"
                         >
                             CLEAR
                         </button>
                     </div>
                     <div className="flex-1 p-4 overflow-y-auto whitespace-pre-wrap">
                         {isRunning ? (
-                            <span className="text-yellow-500 animate-pulse">Running code...</span>
+                            <span className="text-primary animate-pulse">Running code...</span>
                         ) : output ? (
                             <>
-                                {output.stdout && <div className="text-slate-300">{output.stdout}</div>}
-                                {output.stderr && <div className="text-red-400 mt-2">{output.stderr}</div>}
-                                {!output.stdout && !output.stderr && <div className="text-slate-500 italic">No output</div>}
+                                {output.stdout && <div className="text-slate-700">{output.stdout}</div>}
+                                {output.stderr && <div className="text-red-500 mt-2">{output.stderr}</div>}
+                                {!output.stdout && !output.stderr && <div className="text-slate-400 italic">No output</div>}
                             </>
                         ) : (
-                            <span className="text-slate-600 italic">Run code to see output here...</span>
+                            <span className="text-slate-400 italic">Run code to see output here...</span>
                         )}
                     </div>
                 </div>

@@ -56,7 +56,7 @@ export default function Header() {
                         >
                             🔗
                         </motion.span>
-                        <span className="font-bold text-lg bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent hidden sm:block">
+                        <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent hidden sm:block">
                             Link & Learn
                         </span>
                     </Link>
@@ -67,7 +67,7 @@ export default function Header() {
                                 type="text"
                                 placeholder="Search users..."
                                 value={searchValue}
-                                className="bg-surface-elevated/50 border border-white/10 rounded-full py-1.5 px-4 pl-9 text-sm w-48 focus:w-64 transition-all focus:bg-surface-elevated focus:border-primary/50 outline-none"
+                                className="bg-white border border-primary/20 rounded-full py-1.5 px-4 pl-9 text-sm w-48 focus:w-64 transition-all focus:bg-white focus:border-primary/50 outline-none text-slate-800 placeholder-slate-400"
                                 onChange={handleSearch}
                             />
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
@@ -81,18 +81,18 @@ export default function Header() {
                         <>
                             {/* Credits Display */}
                             {user && (
-                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-surface-elevated rounded-lg">
+                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg">
                                     <span className="text-yellow-400">💰</span>
-                                    <span className="font-medium text-primary-light">{Number(user.credits).toFixed(2)}</span>
-                                    <span className="text-slate-400 text-sm">credits</span>
+                                    <span className="font-medium text-primary">{Number(user.credits).toFixed(2)}</span>
+                                    <span className="text-slate-500 text-sm">credits</span>
                                 </div>
                             )}
 
                             <Link to="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-bold">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-sm font-bold text-white">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </div>
-                                <span className="text-slate-300 hidden sm:block">
+                                <span className="text-slate-600 hidden sm:block">
                                     {user?.name}
                                 </span>
                             </Link>
@@ -100,7 +100,7 @@ export default function Header() {
 
                             <button
                                 onClick={handleLogoutClick}
-                                className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-surface-elevated rounded-lg transition-colors"
+                                className="px-4 py-2 text-sm text-slate-600 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
                                 aria-label="Logout"
                             >
                                 Logout
@@ -110,7 +110,7 @@ export default function Header() {
                         <>
                             <Link
                                 to="/login"
-                                className="px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors"
+                                className="px-4 py-2 text-sm text-slate-600 hover:text-primary transition-colors"
                             >
                                 Login
                             </Link>

@@ -165,7 +165,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-center h-64">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-slate-400">Loading profile...</p>
+                    <p className="text-slate-500">Loading profile...</p>
                 </div>
             </div>
         )
@@ -174,8 +174,8 @@ export default function ProfilePage() {
     if (!profile) {
         return (
             <div className="text-center py-12">
-                <p className="text-xl text-slate-400">{errorMsg || 'User not found'}</p>
-                <Link to="/search" className="text-primary-light hover:underline mt-4 inline-block">
+                <p className="text-xl text-slate-500">{errorMsg || 'User not found'}</p>
+                <Link to="/search" className="text-primary hover:underline mt-4 inline-block">
                     ← Back to Search
                 </Link>
             </div>
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                     <div className="flex-1">
                         <h1 className="text-2xl font-bold">{profile.name}</h1>
                         {isOwnProfile && profile.email && (
-                            <p className="text-slate-400 text-sm">{profile.email}</p>
+                            <p className="text-slate-500 text-sm">{profile.email}</p>
                         )}
 
                         {/* Rating Badge */}
@@ -219,7 +219,7 @@ export default function ProfilePage() {
                                 ))}
                             </div>
                             <span className="text-lg font-semibold">{avgRating.toFixed(1)}</span>
-                            <span className="text-slate-400 text-sm">
+                            <span className="text-slate-500 text-sm">
                                 ({profile.total_reviews} review{profile.total_reviews !== 1 ? 's' : ''})
                             </span>
                         </div>
@@ -228,8 +228,8 @@ export default function ProfilePage() {
                     {/* Credits (only for own profile) */}
                     {isOwnProfile && profile.credits !== undefined && (
                         <div className="text-right">
-                            <p className="text-3xl font-bold text-primary-light">{Number(profile.credits).toFixed(2)}</p>
-                            <p className="text-slate-400 text-sm">Credits</p>
+                            <p className="text-3xl font-bold text-primary">{Number(profile.credits).toFixed(2)}</p>
+                            <p className="text-slate-500 text-sm">Credits</p>
                         </div>
                     )}
                 </div>
@@ -237,23 +237,23 @@ export default function ProfilePage() {
 
             {/* Stats Grid */}
             <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4">
-                <div className="card text-center py-6 hover:bg-white/[0.05] transition-colors">
-                    <p className="text-3xl font-bold text-primary-light">{avgRating.toFixed(1)}</p>
-                    <p className="text-slate-400 text-sm mt-1">Avg Rating</p>
+                <div className="card text-center py-6 hover:bg-primary/5 transition-colors">
+                    <p className="text-3xl font-bold text-primary">{avgRating.toFixed(1)}</p>
+                    <p className="text-slate-500 text-sm mt-1">Avg Rating</p>
                 </div>
-                <div className="card text-center py-6 hover:bg-white/[0.05] transition-colors">
-                    <p className="text-3xl font-bold text-accent">{profile.total_reviews}</p>
-                    <p className="text-slate-400 text-sm mt-1">Reviews</p>
+                <div className="card text-center py-6 hover:bg-primary/5 transition-colors">
+                    <p className="text-3xl font-bold text-accent-dark">{profile.total_reviews}</p>
+                    <p className="text-slate-500 text-sm mt-1">Reviews</p>
                 </div>
-                <div className="card text-center py-6 hover:bg-white/[0.05] transition-colors">
-                    <p className="text-3xl font-bold text-purple-400">
+                <div className="card text-center py-6 hover:bg-primary/5 transition-colors">
+                    <p className="text-3xl font-bold text-primary">
                         {isUserOnline(profile.id) ? '🟢' : '⚫'}
                     </p>
-                    <p className="text-slate-400 text-sm mt-1">
+                    <p className="text-slate-500 text-sm mt-1">
                         {isUserOnline(profile.id) ? 'Online' : 'Offline'}
                     </p>
                     {!isUserOnline(profile.id) && (
-                        <p className="text-xs text-primary-light mt-2 border-t border-white/10 pt-2">
+                        <p className="text-xs text-primary mt-2 border-t border-primary/10 pt-2">
                             {profile.availability ? `Expected: ${profile.availability}` : 'No availability provided'}
                         </p>
                     )}
@@ -262,11 +262,11 @@ export default function ProfilePage() {
 
             {/* Active Learning Requests */}
             <motion.section variants={itemVariants} aria-labelledby="requests-heading">
-                <h2 id="requests-heading" className="text-lg font-semibold mb-4 text-slate-300">
+                <h2 id="requests-heading" className="text-lg font-semibold mb-4 text-slate-700">
                     Active Learning Requests
                 </h2>
                 {posts.length === 0 ? (
-                    <div className="card text-center py-8 text-slate-400 italic">
+                    <div className="card text-center py-8 text-slate-500 italic">
                         No active requests from {profile.name}
                     </div>
                 ) : (
@@ -283,11 +283,11 @@ export default function ProfilePage() {
                                 >
                                     <div>
                                         <p className="text-lg">
-                                            Wants to learn <span className="text-primary-light font-bold">{post.topic_to_learn}</span>
+                                            Wants to learn <span className="text-primary font-bold">{post.topic_to_learn}</span>
                                         </p>
                                         {post.topic_to_teach && (
-                                            <p className="text-slate-400 text-sm mt-1">
-                                                Can teach: <span className="text-accent">{post.topic_to_teach}</span>
+                                            <p className="text-slate-500 text-sm mt-1">
+                                                Can teach: <span className="text-accent-dark">{post.topic_to_teach}</span>
                                             </p>
                                         )}
                                         <div className="flex items-center gap-2 mt-2">
@@ -329,10 +329,10 @@ export default function ProfilePage() {
 
             {/* Reviews Section */}
             <motion.section variants={itemVariants}>
-                <h2 className="text-lg font-semibold mb-4 text-slate-300">Reviews</h2>
+                <h2 className="text-lg font-semibold mb-4 text-slate-700">Reviews</h2>
 
                 {reviews.length === 0 ? (
-                    <div className="card text-center py-8 text-slate-400">
+                    <div className="card text-center py-8 text-slate-500">
                         No reviews yet
                     </div>
                 ) : (
@@ -353,12 +353,12 @@ export default function ProfilePage() {
 
             {/* Profile Menu (only for own profile) */}
             {isOwnProfile && (
-                <motion.nav variants={itemVariants} className="card divide-y divide-slate-700" role="navigation" aria-label="Profile menu">
-                    <Link to="/sessions" className="flex items-center gap-4 py-4 hover:text-primary-light transition-colors group">
+                <motion.nav variants={itemVariants} className="card divide-y divide-primary/10" role="navigation" aria-label="Profile menu">
+                    <Link to="/sessions" className="flex items-center gap-4 py-4 hover:text-primary transition-colors group">
                         <span className="text-xl group-hover:scale-125 transition-transform duration-300">📚</span>
                         <span>My Sessions</span>
                     </Link>
-                    <Link to="/search" className="flex items-center gap-4 py-4 hover:text-primary-light transition-colors group">
+                    <Link to="/search" className="flex items-center gap-4 py-4 hover:text-primary transition-colors group">
                         <span className="text-xl group-hover:scale-125 transition-transform duration-300">🔍</span>
                         <span>Find Sessions</span>
                     </Link>

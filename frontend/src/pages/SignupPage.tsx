@@ -55,8 +55,8 @@ export default function SignupPage() {
             <div className="w-full max-w-md animate-fade-in">
                 <div className="card">
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-bold">Create Account</h1>
-                        <p className="text-slate-400 mt-2">Start with 15 free credits!</p>
+                        <h1 className="text-2xl font-bold text-slate-800">Create Account</h1>
+                        <p className="text-slate-500 mt-2">Start with 15 free credits!</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
@@ -67,7 +67,7 @@ export default function SignupPage() {
                         )}
 
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
                                 Display Name
                             </label>
                             <input
@@ -83,7 +83,7 @@ export default function SignupPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                                 Email
                             </label>
                             <input
@@ -99,7 +99,7 @@ export default function SignupPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
                                 Password
                             </label>
                             <input
@@ -116,7 +116,7 @@ export default function SignupPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
                                 Confirm Password
                             </label>
                             <input
@@ -147,9 +147,9 @@ export default function SignupPage() {
                         </button>
                     </form>
 
-                    <p className="text-center text-slate-400 text-sm mt-6">
+                    <p className="text-center text-slate-500 text-sm mt-6">
                         Already have an account?{' '}
-                        <Link to="/login" className="text-primary-light hover:underline">
+                        <Link to="/login" className="text-primary hover:underline">
                             Sign in
                         </Link>
                     </p>

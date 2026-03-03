@@ -21,23 +21,23 @@ export default function ReviewCard({ reviewerId, reviewerName, rating, comment, 
 
     return (
         <motion.div
-            whileHover={{ y: -4, borderColor: 'rgba(192, 132, 252, 0.4)' }}
+            whileHover={{ y: -4, borderColor: 'rgba(245, 175, 175, 0.4)' }}
             className="card p-4 transition-colors"
         >
             <div className="flex items-start justify-between mb-3">
                 <Link to={`/user/${reviewerId}`} className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold transition-transform group-hover:scale-105">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center font-bold text-white transition-transform group-hover:scale-105">
                         {reviewerName.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <p className="font-medium group-hover:text-primary-light transition-colors">{reviewerName}</p>
-                        <p className="text-xs text-slate-400">{formatDate(createdAt)}</p>
+                        <p className="font-medium group-hover:text-primary transition-colors text-slate-800">{reviewerName}</p>
+                        <p className="text-xs text-slate-500">{formatDate(createdAt)}</p>
                     </div>
                 </Link>
 
                 <div className="flex gap-0.5 text-lg">
                     {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={star <= rating ? 'text-yellow-400' : 'text-slate-600'}>
+                        <span key={star} className={star <= rating ? 'text-yellow-400' : 'text-slate-300'}>
                             ★
                         </span>
                     ))}
@@ -45,7 +45,7 @@ export default function ReviewCard({ reviewerId, reviewerName, rating, comment, 
             </div>
 
             {comment && (
-                <p className="text-slate-300 text-sm">{comment}</p>
+                <p className="text-slate-600 text-sm italic">{comment}</p>
             )}
         </motion.div>
     )

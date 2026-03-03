@@ -36,10 +36,10 @@ export default function Sidebar() {
             {/* Logo */}
             <div className="p-6 border-b border-white/10">
                 <Link to="/" className="flex items-center gap-3 group">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center transition-transform group-hover:scale-105">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center transition-transform group-hover:scale-105">
                         <span className="text-xl">📚</span>
                     </div>
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-primary-light to-accent bg-clip-text text-transparent">
+                    <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent">
                         Link & Learn
                     </h1>
                 </Link>
@@ -52,7 +52,7 @@ export default function Sidebar() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         key={user.credits} // Animate on credit change
-                        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-500 to-accent p-6 text-center shadow-lg shadow-primary/20"
+                        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-dark to-primary p-6 text-center shadow-lg shadow-primary/20"
                     >
                         {/* Decorative circles */}
                         <motion.div
@@ -96,7 +96,7 @@ export default function Sidebar() {
                     {/* Bank Support Link */}
                     <button
                         onClick={handleRequestSupport}
-                        className="w-full mt-3 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+                        className="w-full mt-3 py-2 text-sm text-slate-500 hover:text-primary transition-colors"
                         aria-label="Request bank support"
                     >
                         Need credits? Request support →
@@ -114,8 +114,8 @@ export default function Sidebar() {
                                 className={clsx(
                                     'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
                                     location.pathname === item.path
-                                        ? 'bg-primary/20 text-primary-light shadow-inner'
-                                        : 'text-slate-300 hover:bg-surface-elevated hover:text-white'
+                                        ? 'bg-primary/20 text-primary shadow-inner'
+                                        : 'text-slate-600 hover:bg-primary/10 hover:text-primary-dark'
                                 )}
                                 aria-current={location.pathname === item.path ? 'page' : undefined}
                             >
