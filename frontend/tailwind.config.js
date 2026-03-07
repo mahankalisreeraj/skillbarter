@@ -8,23 +8,23 @@ export default {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: '#F5AFAF', // Soft Coral Pink
-                    dark: '#E89393',    // Darker pink
-                    light: '#FACBCB',   // Lighter pink
+                    DEFAULT: '#60A5FA', // Sky Blue
+                    dark: '#3B82F6',    // Blue 500
+                    light: '#93C5FD',   // Blue 300
                 },
                 secondary: {
-                    DEFAULT: '#F9DFDF', // Light Pink
-                    dark: '#F5AFAF',
-                    light: '#FBEFEF',   // Very Light Pink
+                    DEFAULT: '#DBEAFE', // Blue 100
+                    dark: '#60A5FA',
+                    light: '#EFF6FF',   // Blue 50
                 },
                 accent: {
-                    DEFAULT: '#FBEFEF', // Accent Pink
-                    dark: '#F9DFDF',
+                    DEFAULT: '#EFF6FF', // Accent Blue
+                    dark: '#DBEAFE',
                 },
                 surface: {
-                    DEFAULT: '#FCF8F8', // Main Surface (White-Pink)
+                    DEFAULT: '#F8FAFC', // Slate 50
                     elevated: '#FFFFFF',
-                    dark: '#F7F2F2',    // Background Dark
+                    dark: '#F1F5F9',    // Slate 100
                 },
             },
             fontFamily: {
