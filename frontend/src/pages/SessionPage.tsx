@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSessionSocket } from '@/hooks/useSessionSocket'
 import { useChatSocket } from '@/hooks/useChatSocket'
@@ -286,7 +287,45 @@ export default function SessionPage() {
             {/* Main Content Area */}
             <div ref={containerRef} className="flex-1 flex gap-0 p-2 overflow-hidden relative min-h-0 w-full">
                 {/* Primary Panel */}
-                <div className="flex-1 w-0 card !p-0 overflow-hidden min-w-0 flex flex-col h-full bg-surface-elevated">
+                <div className="flex-1 w-0 card !p-0 overflow-hidden min-w-0 flex flex-col h-full bg-surface-elevated relative">
+                    {/* Waiting Indicator */}
+                    <AnimatePresence>
+                        {!sessionSocket.isPeerInRoom && sessionSocket.session?.is_active && (
+                            <div className="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-6 transition-all animate-fade-in">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="card max-w-sm w-full p-8 text-center space-y-4 shadow-2xl border-primary/20 bg-surface/90"
+                                >
+                                    <div className="relative">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-3xl animate-pulse">
+                                            ⏳
+                                        </div>
+                                        <div className="absolute top-1 right-1/2 translate-x-12">
+                                            <motion.span
+                                                animate={{ opacity: [0, 1, 0] }}
+                                                transition={{ repeat: Infinity, duration: 1.5 }}
+                                                className="text-2xl"
+                                            >
+                                                👋
+                                            </motion.span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-900">Waiting for {peerName}</h3>
+                                        <p className="text-slate-500 text-sm mt-2">
+                                            They haven't joined the room yet. We'll let you know as soon as they arrive!
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2 items-center justify-center text-xs text-primary font-medium bg-primary/5 py-2 px-4 rounded-full w-fit mx-auto">
+                                        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
+                                        Monitoring room presence...
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
                     <div className={clsx('h-full w-full relative', activeMode !== 'whiteboard' && 'hidden')}>
                         <Whiteboard
                             sessionId={sessionId}

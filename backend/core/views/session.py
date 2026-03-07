@@ -151,19 +151,42 @@ class SessionViewSet(viewsets.ModelViewSet):
         """
         Poll for session updates (timer status, credits, collaborative data).
         """
+        from datetime import timedelta
+        from django.utils import timezone
+        
         session = self.get_object()
+        user = request.user
         
         # Verify user is participant
-        if request.user not in [session.user1, session.user2]:
+        if user not in [session.user1, session.user2]:
             return Response({'error': 'Not a participant'}, status=status.HTTP_403_FORBIDDEN)
+            
+        # Update current user's room presence
+        now = timezone.now()
+        update_fields = []
+        if user == session.user1:
+            session.user1_last_room_presence = now
+            update_fields.append('user1_last_room_presence')
+        else:
+            session.user2_last_room_presence = now
+            update_fields.append('user2_last_room_presence')
+        session.save(update_fields=update_fields)
+        
+        # Determine if peer is in room (seen within last 5 seconds)
+        threshold = now - timedelta(seconds=5)
+        if user == session.user1:
+            is_peer_in_room = session.user2_last_room_presence and session.user2_last_room_presence > threshold
+        else:
+            is_peer_in_room = session.user1_last_room_presence and session.user1_last_room_presence > threshold
             
         data = {
             'session': SessionSerializer(session).data,
+            'is_peer_in_room': is_peer_in_room,
             'whiteboard_data': session.whiteboard_data,
             'code_data': session.code_data,
             'last_sync_time': session.last_sync_time,
             'last_sync_by': session.last_sync_by_id,
-            'your_credits': float(request.user.credits),
+            'your_credits': float(user.credits),
             'signal_data': session.signal_data,
             'signal_sender': session.signal_sender_id,
             'signal_timestamp': session.signal_timestamp

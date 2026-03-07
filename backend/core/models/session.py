@@ -53,6 +53,10 @@ class Session(models.Model):
     )
     signal_timestamp = models.DateTimeField(auto_now=True)
     
+    # Room Presence Tracking (Polling-based)
+    user1_last_room_presence = models.DateTimeField(null=True, blank=True)
+    user2_last_room_presence = models.DateTimeField(null=True, blank=True)
+    
     class Meta:
         verbose_name = 'session'
         verbose_name_plural = 'sessions'

@@ -10,6 +10,7 @@ interface SessionSocketState {
     activeTimer: SessionTimer | null
     yourCredits: number
     error: string | null
+    isPeerInRoom: boolean
 }
 
 interface SessionSocketActions {
@@ -30,6 +31,7 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const [activeTimer, setActiveTimer] = useState<SessionTimer | null>(null)
     const [yourCredits, setYourCredits] = useState(0)
     const [error, setError] = useState<string | null>(null)
+    const [isPeerInRoom, setIsPeerInRoom] = useState(false)
 
     const lastSyncTimeRef = useRef<string | null>(null)
     const lastSignalTimeRef = useRef<string | null>(null)
@@ -47,6 +49,7 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
 
             setSession(data.session)
             setActiveTimer(data.session.active_timer)
+            setIsPeerInRoom(!!data.is_peer_in_room)
             setIsConnected(true)
 
             if (data.your_credits !== undefined) {
@@ -190,5 +193,6 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
         sendMessage,
         sendWhiteboard,
         sendCode,
+        isPeerInRoom
     }
 }

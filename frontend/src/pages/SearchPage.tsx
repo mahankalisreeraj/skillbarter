@@ -44,6 +44,7 @@ export default function SearchPage() {
     const [showMyPosts, setShowMyPosts] = useState(false)
     const [connectingPostId, setConnectingPostId] = useState<number | null>(null)
     const [relevanceFilter, setRelevanceFilter] = useState<{ learn: string; teach: string } | null>(null)
+    const [offlinePeer, setOfflinePeer] = useState<{ name: string; availability: string } | null>(null)
 
     // User search state
     const [searchParams] = useSearchParams()
@@ -123,6 +124,14 @@ export default function SearchPage() {
 
     const handleConnect = async (post: LearningPost) => {
         if (!user) return
+
+        const isOnline = isUserOnline(post.creator_id)
+        if (!isOnline) {
+            setOfflinePeer({
+                name: post.creator_name,
+                availability: post.creator_availability || "Not specified"
+            })
+        }
 
         setConnectingPostId(post.id)
         try {
@@ -507,6 +516,38 @@ export default function SearchPage() {
                     </motion.ul>
                 )}
             </section>
+
+            {/* Offline Peer Notification Modal */}
+            <AnimatePresence>
+                {offlinePeer && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="card max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border-primary/20"
+                        >
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-2xl">
+                                🌙
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-900">{offlinePeer.name} is offline</h3>
+                                <p className="text-slate-500 text-sm mt-1">But don't worry! Your session is waiting for them.</p>
+                            </div>
+                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
+                                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Availability</p>
+                                <p className="text-primary font-medium">{offlinePeer.availability}</p>
+                            </div>
+                            <button
+                                onClick={() => setOfflinePeer(null)}
+                                className="btn-primary w-full py-3"
+                            >
+                                Got it
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div >
     )
 }

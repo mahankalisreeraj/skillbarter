@@ -20,6 +20,7 @@ export interface UserPublic {
     id: number
     name: string
     is_online: boolean
+    availability?: string
     average_rating: number | null
     total_reviews: number
 }
@@ -31,6 +32,7 @@ export interface LearningPost {
     creator_id: number
     creator_name: string
     creator_rating: number | null
+    creator_availability?: string
     topic_to_learn: string
     topic_to_teach: string
     ok_with_just_learning: boolean
@@ -72,6 +74,8 @@ export interface Session {
     user1_teaching_time: number
     user2_teaching_time: number
     active_timer: SessionTimer | null
+    user1_last_room_presence: string | null
+    user2_last_room_presence: string | null
 }
 
 export interface SessionCreate {

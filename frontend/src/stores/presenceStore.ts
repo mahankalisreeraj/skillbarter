@@ -4,9 +4,11 @@ import type { UserPublic } from '@/types'
 interface PresenceState {
     onlineUsers: UserPublic[]
     requestStatus: Map<number, 'online' | 'offline'> // Fast lookup
+    waitingSessions: Array<{ id: number; peer_name: string }>
 
     // Actions
     setOnlineUsers: (users: UserPublic[]) => void
+    setWaitingSessions: (sessions: Array<{ id: number; peer_name: string }>) => void
     addUser: (user: UserPublic) => void
     removeUser: (userId: number) => void
     isUserOnline: (userId: number) => boolean
@@ -15,11 +17,16 @@ interface PresenceState {
 export const usePresenceStore = create<PresenceState>((set, get) => ({
     onlineUsers: [],
     requestStatus: new Map(),
+    waitingSessions: [],
 
     setOnlineUsers: (users) => {
         const map = new Map<number, 'online' | 'offline'>()
         users.forEach(u => map.set(u.id, 'online'))
         set({ onlineUsers: users, requestStatus: map })
+    },
+
+    setWaitingSessions: (sessions) => {
+        set({ waitingSessions: sessions })
     },
 
     addUser: (user) => {

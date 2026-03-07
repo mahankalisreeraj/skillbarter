@@ -8,6 +8,7 @@ class LearningRequestPostSerializer(serializers.ModelSerializer):
     creator_name = serializers.CharField(source='creator.name', read_only=True)
     creator_id = serializers.IntegerField(source='creator.id', read_only=True)
     creator_rating = serializers.FloatField(source='creator.average_rating', read_only=True)
+    creator_availability = serializers.CharField(source='creator.availability', read_only=True)
     
     class Meta:
         model = LearningRequestPost
@@ -16,6 +17,7 @@ class LearningRequestPostSerializer(serializers.ModelSerializer):
             'creator_id',
             'creator_name',
             'creator_rating',
+            'creator_availability',
             'topic_to_learn',
             'topic_to_teach',
             'ok_with_just_learning',
