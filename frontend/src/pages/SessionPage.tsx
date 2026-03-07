@@ -245,8 +245,11 @@ export default function SessionPage() {
                     </div>
                 </div>
 
-                {/* Mode Switcher */}
-                <div className="flex items-center gap-1 p-1 bg-primary/5 rounded-lg">
+                {/* Mode Switcher - Only show when peer is in room */}
+                <div className={clsx(
+                    "flex items-center gap-1 p-1 bg-primary/5 rounded-lg transition-all",
+                    !sessionSocket.isPeerInRoom ? "opacity-0 pointer-events-none translate-y-2" : "opacity-100 translate-y-0"
+                )}>
                     {modes.map((mode) => (
                         <button
                             key={mode.id}
@@ -370,25 +373,35 @@ export default function SessionPage() {
                     style={{ width: `${sidePanelWidth}px` }}
                     className="flex flex-col gap-4 flex-shrink-0 min-w-[280px] h-full overflow-hidden"
                 >
-                    {/* Timer */}
-                    <SessionTimer
-                        activeTimer={sessionSocket.activeTimer}
-                        onStartTimer={sessionSocket.startTimer}
-                        onStopTimer={sessionSocket.stopTimer}
-                        yourCredits={sessionSocket.yourCredits}
-                        isSessionActive={sessionSocket.session?.is_active ?? false}
-                        accumulatedSeconds={
-                            sessionSocket.session
-                                ? (sessionSocket.activeTimer?.is_running
-                                    ? (sessionSocket.activeTimer.teacher === sessionSocket.session.user1
-                                        ? sessionSocket.session.user1_teaching_time
-                                        : sessionSocket.session.user2_teaching_time)
-                                    : (user?.id === sessionSocket.session.user1
-                                        ? sessionSocket.session.user1_teaching_time
-                                        : sessionSocket.session.user2_teaching_time))
-                                : 0
-                        }
-                    />
+                    {/* Timer - Only visible/active when peer is in room */}
+                    <div className={clsx(
+                        "transition-all duration-500",
+                        !sessionSocket.isPeerInRoom ? "opacity-40 grayscale pointer-events-none scale-95" : "opacity-100 grayscale-0 scale-100"
+                    )}>
+                        <SessionTimer
+                            activeTimer={sessionSocket.activeTimer}
+                            onStartTimer={sessionSocket.startTimer}
+                            onStopTimer={sessionSocket.stopTimer}
+                            yourCredits={sessionSocket.yourCredits}
+                            isSessionActive={!!sessionSocket.session?.is_active && sessionSocket.isPeerInRoom}
+                            accumulatedSeconds={
+                                sessionSocket.session
+                                    ? (sessionSocket.activeTimer?.is_running
+                                        ? (sessionSocket.activeTimer.teacher === sessionSocket.session.user1
+                                            ? sessionSocket.session.user1_teaching_time
+                                            : sessionSocket.session.user2_teaching_time)
+                                        : (user?.id === sessionSocket.session.user1
+                                            ? sessionSocket.session.user1_teaching_time
+                                            : sessionSocket.session.user2_teaching_time))
+                                    : 0
+                            }
+                        />
+                        {!sessionSocket.isPeerInRoom && (
+                            <p className="text-[10px] text-center text-slate-400 mt-2 font-medium animate-pulse">
+                                Waiting for both users to start timer
+                            </p>
+                        )}
+                    </div>
 
                     {/* Chat - Flex 1 to take remaining height */}
                     <ChatPanel

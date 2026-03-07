@@ -24,22 +24,31 @@ export default function Layout() {
                             initial={{ opacity: 0, x: 50, scale: 0.9 }}
                             animate={{ opacity: 1, x: 0, scale: 1 }}
                             exit={{ opacity: 0, x: 50, scale: 0.9 }}
-                            className="card max-w-sm p-4 shadow-2xl border-primary/30 bg-white/90 backdrop-blur-xl pointer-events-auto flex items-center gap-4 border-l-4 border-l-primary"
+                            className="max-w-sm w-80 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 bg-slate-900/95 backdrop-blur-2xl pointer-events-auto flex items-center gap-4 border-l-4 border-l-accent relative overflow-hidden group"
                         >
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+                            {/* Animated background glow */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            <motion.div
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                                className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center text-2xl shadow-inner relative z-10"
+                            >
                                 👋
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-slate-900 truncate">
+                            </motion.div>
+
+                            <div className="flex-1 min-w-0 relative z-10">
+                                <p className="text-sm font-black text-white uppercase tracking-tight truncate">
                                     {session.peer_name} is waiting!
                                 </p>
-                                <p className="text-xs text-slate-500">Join them in your session.</p>
+                                <p className="text-xs text-slate-300 font-medium">Join them in your session.</p>
                             </div>
+
                             <Link
                                 to={`/session/${session.id}`}
-                                className="btn-primary text-xs px-3 py-2 whitespace-nowrap"
+                                className="bg-accent hover:bg-accent-dark text-black text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded shadow-[0_0_20px_rgba(var(--accent-rgb),0.4)] transition-all hover:scale-105 active:scale-95 relative z-10"
                             >
-                                Join Now
+                                Join
                             </Link>
                         </motion.div>
                     ))}

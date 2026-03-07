@@ -131,6 +131,7 @@ export default function SearchPage() {
                 name: post.creator_name,
                 availability: post.creator_availability || "Not specified"
             })
+            return // Stop here, don't navigate or create session
         }
 
         setConnectingPostId(post.id)
@@ -520,29 +521,37 @@ export default function SearchPage() {
             {/* Offline Peer Notification Modal */}
             <AnimatePresence>
                 {offlinePeer && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="card max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border-primary/20"
+                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                            className="max-w-sm w-full p-8 text-center space-y-6 shadow-[0_30px_100px_rgba(0,0,0,0.5)] border border-white/10 bg-slate-900 text-white rounded-2xl relative overflow-hidden"
                         >
-                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-2xl">
+                            {/* Decorative element */}
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-accent to-primary" />
+
+                            <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto text-4xl shadow-2xl border border-white/5">
                                 🌙
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-900">{offlinePeer.name} is offline</h3>
-                                <p className="text-slate-500 text-sm mt-1">But don't worry! Your session is waiting for them.</p>
+
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-black uppercase tracking-tight">{offlinePeer.name} is Offline</h3>
+                                <p className="text-slate-400 text-sm leading-relaxed">
+                                    You can only join sessions when both participants are online.
+                                </p>
                             </div>
-                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/10">
-                                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Availability</p>
-                                <p className="text-primary font-medium">{offlinePeer.availability}</p>
+
+                            <div className="p-4 bg-slate-800/50 rounded-xl border border-white/5 space-y-1">
+                                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Their Availability</p>
+                                <p className="text-primary-light font-bold text-lg">{offlinePeer.availability}</p>
                             </div>
+
                             <button
                                 onClick={() => setOfflinePeer(null)}
-                                className="btn-primary w-full py-3"
+                                className="w-full bg-white text-black font-black uppercase tracking-widest py-4 rounded-lg hover:bg-slate-200 transition-colors shadow-xl active:scale-95"
                             >
-                                Got it
+                                Understood
                             </button>
                         </motion.div>
                     </div>
