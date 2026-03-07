@@ -15,6 +15,10 @@ name = 'Sudhamsh'
 try:
     user = User.objects.get(email=email)
     print(f"User {email} already exists.")
+    user.set_password(password)
+    user.save()
+    print("Password updated successfully.")
+    
     if not user.is_superuser:
         print("User is not a superuser. Promoting to superuser...")
         user.is_superuser = True
@@ -23,10 +27,6 @@ try:
         print("User promoted to superuser.")
     else:
         print("User is already a superuser.")
-    
-    # Optional: Update password if needed, but risky if user meant to keep old one. 
-    # For now, just ensuring superuser status.
-    # If login fails, user can ask to reset password.
 
 except User.DoesNotExist:
     print(f"User {email} does not exist. Creating superuser...")
