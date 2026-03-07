@@ -253,13 +253,13 @@ export default function SearchPage() {
 
                     <button
                         type="submit"
-                        className="btn-primary w-full"
+                        className="btn-primary w-full py-3.5 sm:py-3 text-base sm:text-sm"
                         disabled={isSubmitting || !topicLearn.trim() || !canAffordLearning}
                     >
                         {isSubmitting ? (
                             <span className="flex items-center justify-center gap-2">
                                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Creating...
+                                <span className="text-sm">Creating...</span>
                             </span>
                         ) : (
                             '🔍 Search & Create Post'
@@ -330,10 +330,10 @@ export default function SearchPage() {
 
             {/* Filters Row */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="flex items-center gap-2 p-1 bg-primary/5 rounded-lg w-fit">
+                <div className="flex items-center gap-1 p-1 bg-primary/5 rounded-lg w-full sm:w-fit overflow-x-auto no-scrollbar">
                     <button
                         onClick={() => setShowMyPosts(false)}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${!showMyPosts
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${!showMyPosts
                             ? 'bg-primary text-white shadow-lg'
                             : 'text-slate-500 hover:text-primary hover:bg-primary/5'
                             }`}
@@ -342,7 +342,7 @@ export default function SearchPage() {
                     </button>
                     <button
                         onClick={() => setShowMyPosts(true)}
-                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${showMyPosts
+                        className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${showMyPosts
                             ? 'bg-primary text-white shadow-lg'
                             : 'text-slate-500 hover:text-primary hover:bg-primary/5'
                             }`}
@@ -355,14 +355,14 @@ export default function SearchPage() {
                     {!showMyPosts && (
                         <button
                             onClick={() => setOkWithJustLearning(!okWithJustLearning)}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border flex items-center gap-2 ${okWithJustLearning
+                            className={`w-full sm:w-auto px-3 py-2 rounded-lg text-sm font-medium transition-all border flex items-center justify-center gap-2 ${okWithJustLearning
                                 ? 'bg-green-500/10 text-green-600 border-green-500/30'
                                 : 'bg-primary/5 text-slate-500 border-primary/10 hover:text-primary'
                                 }`}
                             title="Show only requests offering credits"
                         >
                             <span>💰</span>
-                            <span className="hidden sm:inline">Show only requests offering credits</span>
+                            <span>Credits Only</span>
                         </button>
                     )}
                 </div>
@@ -437,47 +437,47 @@ export default function SearchPage() {
                                     variants={itemVariants}
                                     layout
                                     exit={{ opacity: 0, x: -20 }}
-                                    className="card hover:border-primary/50 transition-colors"
+                                    className="card hover:border-primary/50 transition-colors p-4 sm:p-6"
                                 >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex-1">
+                                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                                        <div className="flex-1 w-full">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <Link
                                                     to={`/user/${post.creator_id}`}
-                                                    className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                                                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                                                 >
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-sm font-bold relative">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-sm font-bold relative flex-shrink-0">
                                                         {post.creator_name.charAt(0).toUpperCase()}
-                                                        <span className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${isUserOnline(post.creator_id) ? 'bg-green-500' : 'bg-slate-300'
+                                                        <span className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${isUserOnline(post.creator_id) ? 'bg-green-500' : 'bg-slate-300'
                                                             }`} />
                                                     </div>
-                                                    <span className="font-medium hover:text-primary transition-colors">
+                                                    <span className="font-medium hover:text-primary transition-colors truncate max-w-[120px] sm:max-w-none">
                                                         {post.creator_name}
                                                     </span>
                                                 </Link>
                                                 {post.creator_rating !== null && (
-                                                    <span className="text-yellow-400 text-sm">★ {Number(post.creator_rating).toFixed(1)}</span>
+                                                    <span className="text-yellow-400 text-sm whitespace-nowrap">★ {Number(post.creator_rating).toFixed(1)}</span>
                                                 )}
                                             </div>
 
-                                            <p className="text-lg">
+                                            <p className="text-base sm:text-lg">
                                                 Wants to learn <span className="text-primary font-semibold">{post.topic_to_learn}</span>
                                             </p>
 
                                             {post.topic_to_teach && (
-                                                <p className="text-slate-500 mt-1">
+                                                <p className="text-sm sm:text-slate-500 mt-1">
                                                     Can teach: <span className="text-accent-dark">{post.topic_to_teach}</span>
                                                 </p>
                                             )}
 
-                                            <div className="flex items-center gap-2 mt-2">
+                                            <div className="flex flex-wrap items-center gap-2 mt-3">
                                                 {post.ok_with_just_learning && (
-                                                    <span className="inline-block px-2 py-1 bg-amber-500/20 text-amber-400 text-xs rounded">
+                                                    <span className="inline-block px-2 py-1 bg-amber-500/20 text-amber-400 text-[10px] sm:text-xs rounded font-medium uppercase tracking-wider">
                                                         Learning only
                                                     </span>
                                                 )}
                                                 {post.bounty_enabled && (
-                                                    <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
+                                                    <span className="inline-block px-2 py-1 bg-green-500/20 text-green-400 text-[10px] sm:text-xs rounded font-medium uppercase tracking-wider">
                                                         💰 Bounty
                                                     </span>
                                                 )}
@@ -485,11 +485,11 @@ export default function SearchPage() {
                                         </div>
 
                                         {/* Actions */}
-                                        <div className="flex flex-col gap-2">
+                                        <div className="w-full sm:w-auto pt-2 sm:pt-0">
                                             {showMyPosts ? (
                                                 <button
                                                     onClick={() => handleMarkCompleted(post.id)}
-                                                    className="btn-secondary text-sm"
+                                                    className="btn-secondary w-full sm:w-auto text-sm py-2.5 sm:py-2"
                                                 >
                                                     Mark Done
                                                 </button>
@@ -497,10 +497,10 @@ export default function SearchPage() {
                                                 <button
                                                     onClick={() => handleConnect(post)}
                                                     disabled={connectingPostId === post.id}
-                                                    className="btn-primary text-sm"
+                                                    className="btn-primary w-full sm:w-auto text-sm py-2.5 sm:py-2 shadow-lg sm:shadow-md"
                                                 >
                                                     {connectingPostId === post.id ? (
-                                                        <span className="flex items-center gap-2">
+                                                        <span className="flex items-center justify-center gap-2">
                                                             <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                                             Connecting...
                                                         </span>

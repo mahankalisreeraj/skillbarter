@@ -72,35 +72,35 @@ export default function SessionsPage() {
                             return (
                                 <div key={session.id || `active-${index}`} className="flex flex-col gap-2 relative group">
                                     <div className={clsx(
-                                        "card transition-all flex items-center justify-between",
+                                        "card transition-all flex flex-col sm:flex-row items-center justify-between gap-4",
                                         isOnline
                                             ? "hover:border-primary/50 cursor-pointer"
                                             : "opacity-60 cursor-not-allowed bg-slate-50 border-slate-200"
                                     )}>
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-4 w-full sm:w-auto">
                                             <div className={clsx(
-                                                "w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-transform group-hover:scale-105",
+                                                "w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-transform flex-shrink-0 group-hover:scale-105",
                                                 isOnline ? "bg-gradient-to-br from-primary to-accent" : "bg-slate-300"
                                             )}>
                                                 {peerName?.charAt(0).toUpperCase()}
                                             </div>
-                                            <div>
+                                            <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-slate-900">Session with {peerName}</p>
+                                                    <p className="font-semibold text-slate-900 truncate">Session with {peerName}</p>
                                                     <span className={clsx(
-                                                        "w-1.5 h-1.5 rounded-full",
+                                                        "w-1.5 h-1.5 rounded-full flex-shrink-0",
                                                         isOnline ? "bg-green-500 animate-pulse" : "bg-slate-400"
                                                     )} title={isOnline ? "Online" : "Offline"} />
                                                 </div>
-                                                <p className="text-sm text-slate-500">
-                                                    Started {new Date(session.start_time).toLocaleString()}
+                                                <p className="text-xs sm:text-sm text-slate-500">
+                                                    Started {new Date(session.start_time).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col items-end gap-2">
+                                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-4 sm:pt-0 border-t sm:border-0 border-slate-100 gap-2">
                                             <span className={clsx(
-                                                "px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider",
+                                                "px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider",
                                                 isOnline ? "bg-green-500/20 text-green-600" : "bg-slate-200 text-slate-500"
                                             )}>
                                                 {isOnline ? 'Joinable' : 'Peer Offline'}
@@ -111,10 +111,10 @@ export default function SessionsPage() {
                                                     to={`/session/${session.id}`}
                                                     className="btn-primary py-1.5 px-6 text-sm shadow-md hover:shadow-lg transition-all"
                                                 >
-                                                    Enter Room
+                                                    Enter
                                                 </Link>
                                             ) : (
-                                                <span className="text-[10px] text-slate-400 font-medium">Wait for peer to go online</span>
+                                                <span className="text-[10px] text-slate-400 font-medium">Wait for peer</span>
                                             )}
                                         </div>
                                     </div>

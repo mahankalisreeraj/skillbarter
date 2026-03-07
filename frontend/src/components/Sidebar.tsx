@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
+import { useUIStore } from '@/stores/uiStore'
 import api from '@/lib/api'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
@@ -12,6 +13,7 @@ const navItems = [
 
 export default function Sidebar() {
     const { user, isAuthenticated } = useAuthStore()
+    const { isSidebarOpen, setSidebarOpen } = useUIStore()
     const location = useLocation()
 
     // Filter items based on authentication
@@ -32,10 +34,13 @@ export default function Sidebar() {
     }
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-72 bg-surface/80 backdrop-blur-xl border-r border-white/10 flex flex-col z-50">
-            {/* Logo */}
-            <div className="p-6 border-b border-white/10">
-                <Link to="/" className="flex items-center gap-3 group">
+        <aside className={clsx(
+            "fixed left-0 top-0 h-screen w-72 bg-surface/95 backdrop-blur-2xl border-r border-white/10 flex flex-col z-50 transition-transform duration-300 lg:translate-x-0 shadow-2xl lg:shadow-none",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+            {/* Logo & Close Button */}
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                <Link to="/" className="flex items-center gap-3 group" onClick={() => setSidebarOpen(false)}>
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center transition-transform group-hover:scale-105">
                         <span className="text-xl">📚</span>
                     </div>
@@ -43,11 +48,19 @@ export default function Sidebar() {
                         Link & Learn
                     </h1>
                 </Link>
+
+                <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="lg:hidden p-2 text-slate-400 hover:text-white transition-colors"
+                    aria-label="Close sidebar"
+                >
+                    ✕
+                </button>
             </div>
 
             {/* Bank Widget - Always Visible */}
             {isAuthenticated && user && (
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto custom-scrollbar">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -105,17 +118,18 @@ export default function Sidebar() {
             )}
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 py-6" role="navigation" aria-label="Main navigation">
+            <nav className="flex-1 px-4 py-6 overflow-y-auto custom-scrollbar" role="navigation" aria-label="Main navigation">
                 <ul className="space-y-2">
                     {visibleNavItems.map((item) => (
                         <li key={item.path}>
                             <Link
                                 to={item.path}
+                                onClick={() => setSidebarOpen(false)}
                                 className={clsx(
                                     'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
                                     location.pathname === item.path
                                         ? 'bg-primary/20 text-primary shadow-inner'
-                                        : 'text-slate-600 hover:bg-primary/10 hover:text-primary-dark'
+                                        : 'text-slate-400 hover:bg-primary/10 hover:text-primary-dark'
                                 )}
                                 aria-current={location.pathname === item.path ? 'page' : undefined}
                             >

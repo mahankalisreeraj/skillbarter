@@ -3,6 +3,7 @@ import Sidebar from './Sidebar'
 import Header from './Header'
 import { usePresence } from '@/hooks/usePresence'
 import { usePresenceStore } from '@/stores/presenceStore'
+import { useUIStore } from '@/stores/uiStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
@@ -12,6 +13,7 @@ export default function Layout() {
     const location = useLocation()
     const isSessionPage = location.pathname.startsWith('/session/')
     const { waitingSessions } = usePresenceStore()
+    const { isSidebarOpen, setSidebarOpen } = useUIStore()
 
     return (
         <div className="flex min-h-screen bg-surface-dark">
@@ -55,13 +57,26 @@ export default function Layout() {
                 </AnimatePresence>
             </div>
 
+            {/* Sidebar Toggle Backdrop (Mobile) */}
+            <AnimatePresence>
+                {isSidebarOpen && !isSessionPage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setSidebarOpen(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Always-visible Bank Sidebar (unless in session) */}
             {!isSessionPage && <Sidebar />}
 
             {/* Main Content Area */}
-            <div className={`flex-1 flex flex-col ${isSessionPage ? '' : 'ml-72'}`}>
+            <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSessionPage ? '' : 'lg:ml-72'}`}>
                 <Header />
-                <main className="flex-1 p-6 lg:p-8">
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
                     <Outlet />
                 </main>
             </div>

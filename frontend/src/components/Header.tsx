@@ -3,11 +3,13 @@ import { useAuthStore } from '@/stores/authStore'
 import { usePostsStore } from '@/stores/requestsStore'
 import { useState, useEffect } from 'react'
 import AvailabilityModal from './AvailabilityModal'
+import { useUIStore } from '@/stores/uiStore'
 import { motion } from 'framer-motion'
 
 export default function Header() {
     const { user, isAuthenticated, logout } = useAuthStore()
     const { myPosts } = usePostsStore()
+    const { toggleSidebar } = useUIStore()
     const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
@@ -47,8 +49,18 @@ export default function Header() {
                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
                 className="h-16 bg-surface/50 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-40"
             >
-                {/* Logo */}
-                <div className="flex items-center gap-4">
+                {/* Logo & Toggle */}
+                <div className="flex items-center gap-3">
+                    {isAuthenticated && (
+                        <button
+                            onClick={toggleSidebar}
+                            className="lg:hidden p-2 -ml-2 text-slate-600 hover:text-primary transition-colors"
+                            aria-label="Toggle navigation"
+                        >
+                            <span className="text-xl">☰</span>
+                        </button>
+                    )}
+
                     <Link to="/" className="flex items-center gap-2 group">
                         <motion.span
                             whileHover={{ rotate: 15, scale: 1.1 }}
@@ -56,24 +68,25 @@ export default function Header() {
                         >
                             🔗
                         </motion.span>
-                        <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent hidden sm:block">
+                        <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent hidden md:block">
                             Link & Learn
                         </span>
                     </Link>
-
-                    {isAuthenticated && (
-                        <div className="relative ml-8">
-                            <input
-                                type="text"
-                                placeholder="Search users..."
-                                value={searchValue}
-                                className="bg-white border border-primary/20 rounded-full py-1.5 px-4 pl-9 text-sm w-48 focus:w-64 transition-all focus:bg-white focus:border-primary/50 outline-none text-slate-800 placeholder-slate-400"
-                                onChange={handleSearch}
-                            />
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
-                        </div>
-                    )}
                 </div>
+
+                {/* Desktop Search */}
+                {isAuthenticated && (
+                    <div className="hidden sm:block relative flex-1 max-w-md mx-8">
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchValue}
+                            className="bg-white/50 border border-primary/20 rounded-full py-1.5 px-4 pl-9 text-sm w-full transition-all focus:bg-white focus:border-primary/50 outline-none text-slate-800 placeholder-slate-400"
+                            onChange={handleSearch}
+                        />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+                    </div>
+                )}
 
                 {/* User Actions */}
                 <nav className="flex items-center gap-4" role="navigation" aria-label="User menu">

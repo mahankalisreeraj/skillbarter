@@ -145,7 +145,7 @@ export default function SessionPage() {
 
     const resize = useCallback(
         (e: MouseEvent) => {
-            if (isResizing && containerRef.current) {
+            if (isResizing && containerRef.current && window.innerWidth >= 1024) {
                 const containerRect = containerRef.current.getBoundingClientRect()
                 const newWidth = containerRect.right - e.clientX
                 if (newWidth > 280 && newWidth < 600) {
@@ -231,23 +231,25 @@ export default function SessionPage() {
     return (
         <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in">
             {/* Top Bar */}
-            <div className="flex items-center justify-between p-4 glass border-b border-white/10">
-                <div className="flex items-center gap-4">
-                    <h1 className="font-bold">Session with {peerName}</h1>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 glass border-b border-white/10 gap-3">
+                <div className="flex items-center gap-3">
+                    <h1 className="font-bold text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">
+                        Session with {peerName}
+                    </h1>
                     <div className="flex items-center gap-2">
                         <span className={clsx(
                             'w-2 h-2 rounded-full',
                             sessionSocket.isConnected ? 'bg-green-500' : 'bg-slate-300'
                         )} />
-                        <span className="text-sm text-slate-500">
-                            {sessionSocket.isConnected ? 'Connected' : 'Connecting...'}
+                        <span className="text-[10px] sm:text-sm text-slate-500">
+                            {sessionSocket.isConnected ? 'Connected' : '...'}
                         </span>
                     </div>
                 </div>
 
-                {/* Mode Switcher - Only show when peer is in room */}
+                {/* Mode Switcher - Optimized for Mobile */}
                 <div className={clsx(
-                    "flex items-center gap-1 p-1 bg-primary/5 rounded-lg transition-all",
+                    "flex items-center gap-1 p-1 bg-primary/5 rounded-lg transition-all overflow-x-auto no-scrollbar max-w-[200px] sm:max-w-none",
                     !sessionSocket.isPeerInRoom ? "opacity-0 pointer-events-none translate-y-2" : "opacity-100 translate-y-0"
                 )}>
                     {modes.map((mode) => (
@@ -255,14 +257,14 @@ export default function SessionPage() {
                             key={mode.id}
                             onClick={() => setActiveMode(mode.id)}
                             className={clsx(
-                                'px-4 py-2 rounded-md text-sm font-medium transition-all',
+                                'px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap',
                                 activeMode === mode.id
                                     ? 'bg-primary text-white shadow-lg'
-                                    : 'text-slate-500 hover:text-primary hover:bg-primary/5'
+                                    : 'text-slate-500 hover:text-primary'
                             )}
                         >
-                            <span className="mr-2">{mode.icon}</span>
-                            {mode.label}
+                            <span className="sm:mr-2">{mode.icon}</span>
+                            <span className="hidden sm:inline">{mode.label}</span>
                         </button>
                     ))}
                 </div>
@@ -272,14 +274,14 @@ export default function SessionPage() {
                         <button
                             onClick={handleEndSession}
                             disabled={isEnding}
-                            className="btn-secondary text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 px-6"
+                            className="btn-secondary text-xs sm:text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 sm:px-6 py-1.5"
                         >
-                            {isEnding ? 'Ending...' : 'End Session'}
+                            {isEnding ? '...' : 'End'}
                         </button>
                     ) : (
                         <button
                             onClick={handleLeaveSession}
-                            className="btn-secondary text-sm"
+                            className="btn-secondary text-xs sm:text-sm px-3 sm:px-6 py-1.5"
                         >
                             Leave
                         </button>
@@ -288,42 +290,33 @@ export default function SessionPage() {
             </div>
 
             {/* Main Content Area */}
-            <div ref={containerRef} className="flex-1 flex gap-0 p-2 overflow-hidden relative min-h-0 w-full">
+            <div ref={containerRef} className="flex-1 flex flex-col lg:flex-row gap-0 p-2 overflow-hidden relative min-h-0 w-full">
                 {/* Primary Panel */}
-                <div className="flex-1 w-0 card !p-0 overflow-hidden min-w-0 flex flex-col h-full bg-surface-elevated relative">
+                <div className="flex-1 lg:w-0 card !p-0 overflow-hidden min-w-0 flex flex-col h-[50vh] lg:h-full bg-surface-elevated relative shadow-xl">
                     {/* Waiting Indicator */}
                     <AnimatePresence>
                         {!sessionSocket.isPeerInRoom && sessionSocket.session?.is_active && (
-                            <div className="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-6 transition-all animate-fade-in">
+                            <div className="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4 sm:p-6 transition-all animate-fade-in">
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    className="card max-w-sm w-full p-8 text-center space-y-4 shadow-2xl border-primary/20 bg-surface/90"
+                                    className="card max-w-sm w-full p-6 sm:p-8 text-center space-y-4 shadow-2xl border-primary/20 bg-surface/90"
                                 >
                                     <div className="relative">
-                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-3xl animate-pulse">
+                                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-2xl sm:text-3xl animate-pulse">
                                             ⏳
-                                        </div>
-                                        <div className="absolute top-1 right-1/2 translate-x-12">
-                                            <motion.span
-                                                animate={{ opacity: [0, 1, 0] }}
-                                                transition={{ repeat: Infinity, duration: 1.5 }}
-                                                className="text-2xl"
-                                            >
-                                                👋
-                                            </motion.span>
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-900">Waiting for {peerName}</h3>
-                                        <p className="text-slate-500 text-sm mt-2">
-                                            They haven't joined the room yet. We'll let you know as soon as they arrive!
+                                        <h3 className="text-lg sm:text-xl font-bold text-slate-900">Waiting for {peerName}</h3>
+                                        <p className="text-slate-500 text-xs sm:text-sm mt-2">
+                                            They'll be here soon!
                                         </p>
                                     </div>
-                                    <div className="flex gap-2 items-center justify-center text-xs text-primary font-medium bg-primary/5 py-2 px-4 rounded-full w-fit mx-auto">
+                                    <div className="flex gap-2 items-center justify-center text-[10px] sm:text-xs text-primary font-medium bg-primary/5 py-1.5 px-3 rounded-full w-fit mx-auto">
                                         <span className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
-                                        Monitoring room presence...
+                                        Monitoring room...
                                     </div>
                                 </motion.div>
                             </div>
@@ -340,7 +333,7 @@ export default function SessionPage() {
                     <div className={clsx('h-full w-full relative bg-black', activeMode !== 'video' && 'hidden')}>
                         {sessionSocket.session && (
                             <VideoCall
-                                sessionId={sessionId}
+                                sessionId={sessionId ?? ''}
                                 onSignal={sessionSocket.sendMessage}
                                 isConnected={sessionSocket.isConnected}
                                 isCaller={user?.id === sessionSocket.session?.user1}
@@ -350,28 +343,28 @@ export default function SessionPage() {
 
                     <div className={clsx('h-full w-full relative', activeMode !== 'code' && 'hidden')}>
                         <CodeEditor
-                            sessionId={sessionId}
+                            sessionId={sessionId ?? ''}
                             isVisible={activeMode === 'code'}
                             onCodeChange={sessionSocket.sendCode}
                         />
                     </div>
                 </div>
 
-                {/* Resizer Handle */}
+                {/* Resizer Handle - Visible only on Desktop */}
                 <div
                     onMouseDown={startResizing}
                     className={clsx(
-                        'w-3 cursor-col-resize flex-shrink-0 group relative z-10',
+                        'hidden lg:flex w-3 cursor-col-resize flex-shrink-0 group relative z-10',
                         isResizing && 'bg-primary/20'
                     )}
                 >
                     <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-white/10 group-hover:bg-primary transition-colors h-full" />
                 </div>
 
-                {/* Right Panel */}
+                {/* Right Panel - Chat and Stats */}
                 <div
-                    style={{ width: `${sidePanelWidth}px` }}
-                    className="flex flex-col gap-4 flex-shrink-0 min-w-[280px] h-full overflow-hidden"
+                    style={{ width: window.innerWidth >= 1024 ? `${sidePanelWidth}px` : '100%' }}
+                    className="flex flex-col gap-3 sm:gap-4 flex-shrink-0 min-w-0 lg:min-w-[280px] h-[50vh] lg:h-full overflow-hidden mt-3 lg:mt-0"
                 >
                     {/* Timer - Only visible/active when peer is in room */}
                     <div className={clsx(
@@ -387,12 +380,12 @@ export default function SessionPage() {
                             accumulatedSeconds={
                                 sessionSocket.session
                                     ? (sessionSocket.activeTimer?.is_running
-                                        ? (sessionSocket.activeTimer.teacher === sessionSocket.session.user1
-                                            ? sessionSocket.session.user1_teaching_time
-                                            : sessionSocket.session.user2_teaching_time)
-                                        : (user?.id === sessionSocket.session.user1
-                                            ? sessionSocket.session.user1_teaching_time
-                                            : sessionSocket.session.user2_teaching_time))
+                                        ? (sessionSocket.activeTimer?.teacher === sessionSocket.session?.user1
+                                            ? sessionSocket.session?.user1_teaching_time
+                                            : sessionSocket.session?.user2_teaching_time)
+                                        : (user?.id === sessionSocket.session?.user1
+                                            ? sessionSocket.session?.user1_teaching_time
+                                            : sessionSocket.session?.user2_teaching_time))
                                     : 0
                             }
                         />
@@ -414,36 +407,40 @@ export default function SessionPage() {
             </div>
 
             {/* Review Modal */}
-            {showReviewModal && sessionSocket.session && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in">
-                    <div className="card max-w-md w-full mx-4">
-                        <h2 className="text-xl font-bold mb-4">Session Ended</h2>
-                        <p className="text-slate-500 mb-6">
-                            Your session with {peerName} has ended.
-                            Would you like to leave a review?
-                        </p>
+            {
+                showReviewModal && sessionSocket.session && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in">
+                        <div className="card max-w-md w-full mx-4">
+                            <h2 className="text-xl font-bold mb-4">Session Ended</h2>
+                            <p className="text-slate-500 mb-6">
+                                Your session with {peerName} has ended.
+                                Would you like to leave a review?
+                            </p>
 
-                        <ReviewForm
-                            sessionId={parseInt(sessionId || '0')}
-                            onComplete={() => {
-                                setShowReviewModal(false)
-                                navigate('/search')
-                            }}
-                            onSkip={() => {
-                                setShowReviewModal(false)
-                                navigate('/search')
-                            }}
-                        />
+                            <ReviewForm
+                                sessionId={parseInt(sessionId || '0')}
+                                onComplete={() => {
+                                    setShowReviewModal(false)
+                                    navigate('/search')
+                                }}
+                                onSkip={() => {
+                                    setShowReviewModal(false)
+                                    navigate('/search')
+                                }}
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Error Toast */}
-            {sessionSocket.error && (
-                <div className="fixed bottom-4 right-4 p-4 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 animate-slide-up">
-                    {sessionSocket.error}
-                </div>
-            )}
-        </div>
+            {
+                sessionSocket.error && (
+                    <div className="fixed bottom-4 right-4 p-4 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 animate-slide-up">
+                        {sessionSocket.error}
+                    </div>
+                )
+            }
+        </div >
     )
 }
