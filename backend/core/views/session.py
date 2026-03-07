@@ -172,8 +172,8 @@ class SessionViewSet(viewsets.ModelViewSet):
             update_fields.append('user2_last_room_presence')
         session.save(update_fields=update_fields)
         
-        # Determine if peer is in room (seen within last 5 seconds)
-        threshold = now - timedelta(seconds=5)
+        # Determine if peer is in room (seen within last 15 seconds)
+        threshold = now - timedelta(seconds=15)
         if user == session.user1:
             is_peer_in_room = session.user2_last_room_presence and session.user2_last_room_presence > threshold
         else:

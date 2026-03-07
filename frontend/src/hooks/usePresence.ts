@@ -1,15 +1,15 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { usePresenceStore } from '@/stores/presenceStore'
 import { usePolling } from './usePolling'
 import api from '@/lib/api'
 
-const POLL_INTERVAL = 30000 // 30 seconds
+const POLL_INTERVAL = 5000 // 5 seconds for faster presence/notification updates
 
 export function usePresence() {
     const [isConnected, setIsConnected] = useState(false)
     const { accessToken, isAuthenticated } = useAuthStore()
-    const { setOnlineUsers } = usePresenceStore()
+    const { setOnlineUsers, setWaitingSessions } = usePresenceStore()
 
     const fetchPresence = useCallback(async () => {
         if (!accessToken || !isAuthenticated) return
@@ -17,12 +17,13 @@ export function usePresence() {
         try {
             const response = await api.get('/presence/online/')
             setOnlineUsers(response.data.users || [])
+            setWaitingSessions(response.data.waiting_sessions || [])
             setIsConnected(true)
         } catch (error) {
             console.error('Failed to fetch presence:', error)
             setIsConnected(false)
         }
-    }, [accessToken, isAuthenticated, setOnlineUsers])
+    }, [accessToken, isAuthenticated, setOnlineUsers, setWaitingSessions])
 
     usePolling(fetchPresence, {
         interval: POLL_INTERVAL,

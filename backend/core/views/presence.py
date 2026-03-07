@@ -45,7 +45,7 @@ class PresenceViewSet(viewsets.ViewSet):
         user.save(update_fields=['last_seen', 'is_online'])
 
         threshold = timezone.now() - timedelta(seconds=60)
-        room_threshold = timezone.now() - timedelta(seconds=5)
+        room_threshold = timezone.now() - timedelta(seconds=15)
         
         # Mark inactive users as offline
         User.objects.filter(is_online=True, last_seen__lt=threshold).update(is_online=False)
