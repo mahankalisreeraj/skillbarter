@@ -31,7 +31,7 @@ npm run dev
 ## Tech Stack
 - **Frontend**: React, TypeScript, Vite, Zustand
 - **Backend**: Django, Django REST Framework, Channels, Daphne
-- **Database**: SQLite (development)
+- **Database**: PostgreSQL
 - **Real-time**: WebSockets via Django Channels
 
 ## Features
