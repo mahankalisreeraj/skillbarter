@@ -4,6 +4,7 @@ import type { editor } from 'monaco-editor'
 import throttle from 'lodash.throttle'
 import clsx from 'clsx'
 import api from '@/lib/api'
+import axios from 'axios'
 
 interface FileEntry {
     name: string
@@ -270,8 +271,8 @@ export default function CodeEditor({ sessionId, isVisible, onCodeChange }: CodeE
         const lang = languageMap[activeFile.language] || activeFile.language
 
         try {
-            // Use local backend proxy to avoid CORS
-            const response = await api.post('/execute/', {
+            // Use unauthenticated axios to avoid JWT 401s on AllowAny proxy endpoint
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/execute/`, {
                 language: lang,
                 version: '*',
                 files: [{ content: activeFile.content }]
