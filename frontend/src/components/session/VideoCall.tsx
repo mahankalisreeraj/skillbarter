@@ -206,13 +206,26 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
                 } else if (payload.type === 'answer') {
                     // Handle Answer
                     console.log('DEBUG: Received Answer')
-                    await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+                    if (pc.signalingState === 'have-local-offer') {
+                        await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp))
+                    } else {
+                        console.warn('DEBUG: Received answer in wrong state:', pc.signalingState)
+                    }
 
                 } else if (payload.type === 'candidate') {
                     // Handle Candidate
                     if (payload.candidate) {
                         console.log('DEBUG: Received ICE Candidate')
-                        await pc.addIceCandidate(new RTCIceCandidate(payload.candidate))
+                        // We must have a remote description before adding candidates
+                        if (pc.remoteDescription) {
+                            try {
+                                await pc.addIceCandidate(new RTCIceCandidate(payload.candidate))
+                            } catch (e) {
+                                console.error('Error adding ICE candidate', e)
+                            }
+                        } else {
+                            console.log('DEBUG: Buffering candidate (remote description not set)')
+                        }
                     }
                 }
             } catch (err) {
