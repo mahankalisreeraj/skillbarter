@@ -8,6 +8,10 @@ interface ChatMessage {
     sender: number
     sender_name: string
     message: string
+    file?: string
+    file_name?: string
+    file_size?: number
+    file_url?: string
     timestamp: string
 }
 
@@ -16,8 +20,13 @@ interface ChatSocketState {
     messages: ChatMessage[]
 }
 
+interface SendMessageParams {
+    message?: string;
+    file?: File;
+}
+
 interface ChatSocketActions {
-    sendMessage: (message: string) => void
+    sendMessage: (params: SendMessageParams) => void
     reconnect: () => void
 }
 
@@ -62,12 +71,23 @@ export function useChatSocket(sessionId: string | number | undefined): ChatSocke
         immediate: true
     }, [fetchMessages])
 
-    const sendMessage = useCallback(async (message: string) => {
-        if (!message.trim() || !sessionId) return
+    interface SendMessageParams {
+        message?: string;
+        file?: File;
+    }
+
+    const sendMessage = useCallback(async ({ message, file }: SendMessageParams) => {
+        if (!sessionId || (!message?.trim() && !file)) return
 
         try {
-            const response = await api.post(`/chat/${sessionId}/send/`, {
-                message: message.trim()
+            const formData = new FormData()
+            if (message?.trim()) formData.append('message', message.trim())
+            if (file) formData.append('file', file)
+
+            const response = await api.post(`/chat/${sessionId}/send/`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             })
             // Immediately update local messages to feel responsive
             setMessages(prev => [...prev, response.data])

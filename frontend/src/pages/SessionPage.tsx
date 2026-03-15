@@ -18,14 +18,23 @@ type LayoutMode = 'whiteboard' | 'video' | 'code'
 
 interface ChatPanelProps {
     className?: string
-    messages: Array<{ sender: number; sender_name: string; message: string; timestamp: string }>
-    onSendMessage: (message: string) => void
+    messages: Array<{ 
+        sender: number; 
+        sender_name: string; 
+        message: string; 
+        timestamp: string;
+        file_name?: string;
+        file_size?: number;
+        file_url?: string;
+    }>
+    onSendMessage: (params: { message?: string; file?: File }) => void
     isConnected: boolean
 }
 
 function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPanelProps) {
     const [inputValue, setInputValue] = useState('')
     const { user } = useAuthStore()
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const scrollRef = useRef<HTMLDivElement>(null)
 
     // Auto-scroll to bottom
@@ -35,18 +44,47 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
         }
     }, [messages])
 
+
     const formatTimestamp = (isoString?: string) => {
         if (!isoString) return ''
         const date = new Date(isoString)
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
+    const formatFileSize = (bytes?: number) => {
+        if (!bytes) return ''
+        if (bytes < 1024) return bytes + ' B'
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+    }
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (inputValue.trim()) {
-            onSendMessage(inputValue)
+            onSendMessage({ message: inputValue })
             setInputValue('')
         }
+    }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File is too large. Max size is 5MB.')
+                return
+            }
+            onSendMessage({ file })
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
+    const getFileIcon = (fileName?: string) => {
+        if (!fileName) return '📄'
+        const ext = fileName.split('.').pop()?.toLowerCase()
+        if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(ext || '')) return '🖼️'
+        if (ext === 'pdf') return '📕'
+        if (['js', 'py', 'java', 'cpp', 'ts', 'html', 'css'].includes(ext || '')) return '💻'
+        return '📄'
     }
 
     return (
@@ -79,13 +117,31 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
                                 </div>
                                 <div
                                     className={clsx(
-                                        'px-3 py-2 rounded-2xl text-sm shadow-sm',
+                                        'px-3 py-2 rounded-2xl text-sm shadow-sm flex flex-col gap-1',
                                         isMe
                                             ? 'bg-primary text-white rounded-tr-none'
                                             : 'bg-slate-100 text-slate-700 rounded-tl-none'
                                     )}
                                 >
-                                    {msg.message}
+                                    {msg.file_url ? (
+                                        <a 
+                                            href={msg.file_url} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className={clsx(
+                                                "flex items-center gap-2 p-2 rounded-lg border transition-colors",
+                                                isMe ? "bg-white/10 border-white/20 hover:bg-white/20" : "bg-white border-slate-200 hover:border-primary/30"
+                                            )}
+                                        >
+                                            <span className="text-xl">{getFileIcon(msg.file_name)}</span>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="font-medium truncate max-w-[150px]">{msg.file_name}</span>
+                                                <span className="text-[10px] opacity-70">{formatFileSize(msg.file_size)}</span>
+                                            </div>
+                                            <span className="ml-2">📥</span>
+                                        </a>
+                                    ) : null}
+                                    {msg.message && <div>{msg.message}</div>}
                                 </div>
                             </div>
                         )
@@ -95,6 +151,21 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
 
             <form onSubmit={handleSubmit} className="p-3 border-t border-primary/10">
                 <div className="flex gap-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={!isConnected}
+                        className="p-2 text-slate-500 hover:text-primary transition-colors hover:bg-primary/5 rounded-lg"
+                        title="Attach file"
+                    >
+                        📎
+                    </button>
                     <input
                         type="text"
                         value={inputValue}

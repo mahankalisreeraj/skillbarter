@@ -43,7 +43,7 @@ class ChatViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['post'], url_path='send')
     def send_message(self, request, pk=None):
         """
-        Send a message to a session.
+        Send a message or a file to a session.
         Usage: POST /api/chat/<session_id>/send/
         """
         session = get_object_or_404(Session, pk=pk)
@@ -53,14 +53,31 @@ class ChatViewSet(viewsets.ViewSet):
             return Response({'error': 'Not a participant'}, status=status.HTTP_403_FORBIDDEN)
             
         message_text = request.data.get('message', '').strip()
-        if not message_text:
-            return Response({'error': 'Message content required'}, status=status.HTTP_400_BAD_REQUEST)
+        uploaded_file = request.FILES.get('file')
+        
+        if not message_text and not uploaded_file:
+            return Response({'error': 'Message content or file required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        file_name = None
+        file_size = None
+        
+        if uploaded_file:
+            # Enforce 5MB limit
+            MAX_SIZE = 5 * 1024 * 1024
+            if uploaded_file.size > MAX_SIZE:
+                return Response({'error': 'File too large (max 5MB)'}, status=status.HTTP_400_BAD_REQUEST)
             
+            file_name = uploaded_file.name
+            file_size = uploaded_file.size
+
         msg = ChatMessage.objects.create(
             session=session,
             sender=request.user,
-            message=message_text
+            message=message_text,
+            file=uploaded_file,
+            file_name=file_name,
+            file_size=file_size
         )
         
-        serializer = ChatMessageSerializer(msg)
+        serializer = ChatMessageSerializer(msg, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
