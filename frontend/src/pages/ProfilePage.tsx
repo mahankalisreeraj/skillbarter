@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authStore'
 import { useSessionsStore } from '@/stores/sessionsStore'
 import { usePresenceStore } from '@/stores/presenceStore'
 import ReviewCard from '@/components/ReviewCard'
+import WeeklyPerformanceGraph from '@/components/profile/WeeklyPerformanceGraph'
 import type { Review, LearningPost } from '@/types'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -38,6 +39,9 @@ interface ProfileData {
     total_reviews: number
     date_joined?: string
     login_streak?: number
+    total_credits_earned?: number
+    hours_taught?: number
+    weekly_activity?: { date: string; hours_taught: number; credits_earned: number }[]
 }
 
 export default function ProfilePage() {
@@ -79,6 +83,9 @@ export default function ProfilePage() {
                             total_reviews: currentUser.total_reviews,
                             date_joined: currentUser.date_joined,
                             login_streak: currentUser.login_streak,
+                            total_credits_earned: currentUser.total_credits_earned,
+                            hours_taught: currentUser.hours_taught,
+                            weekly_activity: currentUser.weekly_activity,
                         })
                     } else if (isAuthenticated) {
                         await fetchProfile()
@@ -95,6 +102,9 @@ export default function ProfilePage() {
                         availability: userData.availability,
                         average_rating: userData.average_rating,
                         total_reviews: userData.total_reviews,
+                        total_credits_earned: userData.total_credits_earned,
+                        hours_taught: userData.hours_taught,
+                        weekly_activity: userData.weekly_activity,
                     })
                 }
 
@@ -159,6 +169,9 @@ export default function ProfilePage() {
                 total_reviews: currentUser.total_reviews,
                 date_joined: currentUser.date_joined,
                 login_streak: currentUser.login_streak,
+                total_credits_earned: currentUser.total_credits_earned,
+                hours_taught: currentUser.hours_taught,
+                weekly_activity: currentUser.weekly_activity,
             })
         }
     }, [currentUser, isOwnProfile])
@@ -262,6 +275,27 @@ export default function ProfilePage() {
                     )}
                 </div>
             </motion.div>
+
+            {/* Performance Metrics Stats Grid */}
+            {(profile.total_credits_earned !== undefined && profile.hours_taught !== undefined) && (
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
+                    <div className="card text-center py-6 hover:bg-primary/5 transition-colors border border-amber-500/20 bg-gradient-to-br from-amber-50 to-white">
+                        <p className="text-3xl font-bold text-amber-500">{Number(profile.total_credits_earned).toFixed(2)}</p>
+                        <p className="text-slate-500 text-sm mt-1 uppercase tracking-wider font-semibold">Total Credits Earned</p>
+                    </div>
+                    <div className="card text-center py-6 hover:bg-primary/5 transition-colors border border-blue-500/20 bg-gradient-to-br from-blue-50 to-white">
+                        <p className="text-3xl font-bold text-blue-500">{Number(profile.hours_taught).toFixed(1)}</p>
+                        <p className="text-slate-500 text-sm mt-1 uppercase tracking-wider font-semibold">Hours Taught</p>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Weekly Performance Graph */}
+            {profile.weekly_activity && profile.weekly_activity.length > 0 && (
+                <motion.div variants={itemVariants}>
+                    <WeeklyPerformanceGraph data={profile.weekly_activity} />
+                </motion.div>
+            )}
 
             {/* Streak Progress (only for own profile) */}
             {isOwnProfile && (

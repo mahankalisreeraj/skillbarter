@@ -126,3 +126,64 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Count of received reviews."""
         from .review import Review
         return Review.objects.filter(reviewee=self).count()
+
+    @property
+    def total_credits_earned(self):
+        """Calculate total credits earned (all time)."""
+        from .credit import CreditTransaction
+        earned_types = ['TEACHING', 'SIGNUP', 'BOUNTY']
+        earned_transactions = CreditTransaction.objects.filter(
+            user=self,
+            transaction_type__in=earned_types,
+            amount__gt=0
+        )
+        total = earned_transactions.aggregate(models.Sum('amount'))['amount__sum']
+        return total if total else Decimal('0.00')
+
+    @property
+    def hours_taught(self):
+        """Calculate total hours taught (all time)."""
+        from .session import SessionTimer
+        timers = SessionTimer.objects.filter(teacher=self, end_time__isnull=False)
+        total_seconds = timers.aggregate(models.Sum('duration_seconds'))['duration_seconds__sum']
+        if not total_seconds:
+            return 0.0
+        return round(total_seconds / 3600.0, 2)
+
+    def get_weekly_activity(self):
+        """Array of the past 7 days showing hours taught and credits earned."""
+        from .credit import CreditTransaction
+        from .session import SessionTimer
+        from django.utils import timezone
+        from datetime import timedelta
+
+        today = timezone.now().date()
+        activity = []
+
+        earned_types = ['TEACHING', 'SIGNUP', 'BOUNTY']
+
+        for i in range(6, -1, -1):
+            target_date = today - timedelta(days=i)
+            
+            # Credits earned on this day
+            credits_earned = CreditTransaction.objects.filter(
+                user=self,
+                transaction_type__in=earned_types,
+                amount__gt=0,
+                created_at__date=target_date
+            ).aggregate(models.Sum('amount'))['amount__sum'] or Decimal('0.00')
+
+            # Seconds taught on this day
+            seconds_taught = SessionTimer.objects.filter(
+                teacher=self,
+                end_time__isnull=False,
+                end_time__date=target_date
+            ).aggregate(models.Sum('duration_seconds'))['duration_seconds__sum'] or 0
+
+            activity.append({
+                'date': target_date.strftime('%Y-%m-%d'),
+                'hours_taught': round(seconds_taught / 3600.0, 2),
+                'credits_earned': float(credits_earned),
+            })
+            
+        return activity

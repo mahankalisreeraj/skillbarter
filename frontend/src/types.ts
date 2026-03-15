@@ -16,6 +16,9 @@ export interface User {
     total_reviews: number
     login_streak: number
     last_login_date: string | null
+    total_credits_earned: number
+    hours_taught: number
+    weekly_activity: { date: string; hours_taught: number; credits_earned: number }[]
 }
 
 export interface UserPublic {
@@ -25,6 +28,9 @@ export interface UserPublic {
     availability?: string
     average_rating: number | null
     total_reviews: number
+    total_credits_earned: number
+    hours_taught: number
+    weekly_activity: { date: string; hours_taught: number; credits_earned: number }[]
 }
 
 // ============ Learning Post Types ============

@@ -10,6 +10,13 @@ class UserSerializer(serializers.ModelSerializer):
     
     average_rating = serializers.FloatField(read_only=True, allow_null=True)
     total_reviews = serializers.IntegerField(read_only=True)
+    total_credits_earned = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    hours_taught = serializers.FloatField(read_only=True)
+    weekly_activity = serializers.ListField(
+        child=serializers.DictField(),
+        source='get_weekly_activity',
+        read_only=True
+    )
     
     class Meta:
         model = User
@@ -23,10 +30,17 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined',
             'average_rating',
             'total_reviews',
+            'total_credits_earned',
+            'hours_taught',
+            'weekly_activity',
             'login_streak',
             'last_login_date',
         ]
-        read_only_fields = ['id', 'email', 'credits', 'date_joined', 'login_streak', 'last_login_date']
+        read_only_fields = [
+            'id', 'email', 'credits', 'date_joined', 'login_streak', 
+            'last_login_date', 'total_credits_earned', 'hours_taught', 
+            'weekly_activity'
+        ]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -94,6 +108,13 @@ class UserPublicSerializer(serializers.ModelSerializer):
     
     average_rating = serializers.FloatField(read_only=True, allow_null=True)
     total_reviews = serializers.IntegerField(read_only=True)
+    total_credits_earned = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    hours_taught = serializers.FloatField(read_only=True)
+    weekly_activity = serializers.ListField(
+        child=serializers.DictField(),
+        source='get_weekly_activity',
+        read_only=True
+    )
     
     class Meta:
         model = User
@@ -104,4 +125,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
             'availability',
             'average_rating',
             'total_reviews',
+            'total_credits_earned',
+            'hours_taught',
+            'weekly_activity',
         ]

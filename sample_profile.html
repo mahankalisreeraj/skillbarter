@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Metrics UI Test</title>
+    <!-- Add React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Add Babel for JSX compiling -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Add Recharts -->
+    <script src="https://unpkg.com/prop-types@15.6/prop-types.js"></script>
+    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        'primary-dark': '#2563eb',
+                        accent: '#8b5cf6',
+                        'accent-dark': '#7c3aed',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+
+    <div class="max-w-3xl mx-auto space-y-8" id="root">
+        <!-- React App mounts here -->
+    </div>
+
+    <script type="text/babel">
+        const { ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, Line } = window.Recharts;
+
+        // Mock data from backend output
+        const mockWeeklyActivity = [
+             { date: '2026-03-09', hours_taught: 4.0, credits_earned: 0.0 },
+             { date: '2026-03-10', hours_taught: 3.5, credits_earned: 0.0 },
+             { date: '2026-03-11', hours_taught: 3.0, credits_earned: 0.0 },
+             { date: '2026-03-12', hours_taught: 2.5, credits_earned: 0.0 },
+             { date: '2026-03-13', hours_taught: 2.0, credits_earned: 0.0 },
+             { date: '2026-03-14', hours_taught: 1.5, credits_earned: 0.0 },
+             { date: '2026-03-15', hours_taught: 1.0, credits_earned: 85.0 },
+        ];
+
+        function WeeklyPerformanceGraph({ data }) {
+            const formattedData = data.map(item => {
+                const d = new Date(item.date);
+                return {
+                    ...item,
+                    displayDate: d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })
+                };
+            });
+
+            return (
+                <div className="card mt-8">
+                    <h3 className="text-lg font-bold mb-6 text-slate-700">Weekly Performance</h3>
+                    <div className="w-full h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
+                                data={formattedData}
+                                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                <XAxis 
+                                    dataKey="displayDate" 
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748B', fontSize: 12 }}
+                                    dy={10}
+                                />
+                                <YAxis 
+                                    yAxisId="left"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748B', fontSize: 12 }}
+                                />
+                                <YAxis 
+                                    yAxisId="right" 
+                                    orientation="right" 
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#64748B', fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                />
+                                
+                                <Bar 
+                                    yAxisId="left" 
+                                    dataKey="hours_taught" 
+                                    name="Hours Taught" 
+                                    fill="#3b82f6" 
+                                    radius={[4, 4, 0, 0]} 
+                                    maxBarSize={40}
+                                />
+                                <Line 
+                                    yAxisId="right"
+                                    type="monotone" 
+                                    dataKey="credits_earned" 
+                                    name="Credits Earned" 
+                                    stroke="#f59e0b" 
+                                    strokeWidth={3}
+                                    dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }}
+                                    activeDot={{ r: 6 }}
+                                />
+                            </ComposedChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            return (
+                <div>
+                    {/* Performance Metrics Stats Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="card text-center py-6 hover:bg-primary/5 transition-colors border border-amber-500/20 bg-gradient-to-br from-amber-50 to-white">
+                            <p className="text-3xl font-bold text-amber-500">85.00</p>
+                            <p className="text-slate-500 text-sm mt-1 uppercase tracking-wider font-semibold">Total Credits Earned</p>
+                        </div>
+                        <div className="card text-center py-6 hover:bg-primary/5 transition-colors border border-blue-500/20 bg-gradient-to-br from-blue-50 to-white">
+                            <p className="text-3xl font-bold text-blue-500">17.5</p>
+                            <p className="text-slate-500 text-sm mt-1 uppercase tracking-wider font-semibold">Hours Taught</p>
+                        </div>
+                    </div>
+
+                    <WeeklyPerformanceGraph data={mockWeeklyActivity} />
+                </div>
+            )
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
