@@ -13,6 +13,10 @@ interface SessionsState {
     fetchSessions: () => Promise<void>
     fetchSession: (id: number) => Promise<Session | null>
     createSession: (user2Id: number, learningRequestId?: number) => Promise<Session>
+    respondToRequest: (sessionId: number, decision: 'accept' | 'reject') => Promise<Session>
+    proposeTime: (sessionId: number, time: string) => Promise<Session>
+    confirmTime: (sessionId: number) => Promise<Session>
+    joinLobby: (sessionId: number) => Promise<Session>
     endSession: (id: number) => Promise<void>
     submitReview: (sessionId: number, review: ReviewCreate) => Promise<Review>
     clearError: () => void
@@ -55,25 +59,83 @@ export const useSessionsStore = create<SessionsState>((set) => ({
     createSession: async (user2Id: number, learningRequestId?: number) => {
         set({ error: null })
         try {
-            const payload: { user2: number; learning_request?: number } = { user2: user2Id }
+            // New flow expects post_id
+            const payload: any = { user2: user2Id }
             if (learningRequestId) {
-                payload.learning_request = learningRequestId
+                payload.post_id = learningRequestId
             }
 
             const response = await api.post('sessions/', payload)
             const newSession = response.data
 
-            // Add to local state
             set((state) => ({
                 sessions: [newSession, ...state.sessions],
                 currentSession: newSession,
             }))
 
             return newSession
-        } catch (error: unknown) {
-            const err = error as { response?: { data?: { detail?: string } } }
-            const message = err.response?.data?.detail || 'Failed to create session'
-            set({ error: message })
+        } catch (error: any) {
+            set({ error: error.response?.data?.error || 'Failed to create session' })
+            throw error
+        }
+    },
+
+    respondToRequest: async (sessionId: number, decision: 'accept' | 'reject') => {
+        try {
+            const response = await api.post(`sessions/${sessionId}/respond/`, { decision })
+            const updated = response.data
+            set((state) => ({
+                sessions: state.sessions.map(s => s.id === sessionId ? updated : s),
+                currentSession: state.currentSession?.id === sessionId ? updated : state.currentSession
+            }))
+            return updated
+        } catch (error) {
+            console.error('Failed to respond to request:', error)
+            throw error
+        }
+    },
+
+    proposeTime: async (sessionId: number, time: string) => {
+        try {
+            const response = await api.post(`sessions/${sessionId}/propose-time/`, { time })
+            const updated = response.data
+            set((state) => ({
+                sessions: state.sessions.map(s => s.id === sessionId ? updated : s),
+                currentSession: state.currentSession?.id === sessionId ? updated : state.currentSession
+            }))
+            return updated
+        } catch (error) {
+            console.error('Failed to propose time:', error)
+            throw error
+        }
+    },
+
+    confirmTime: async (sessionId: number) => {
+        try {
+            const response = await api.post(`sessions/${sessionId}/confirm-time/`)
+            const updated = response.data
+            set((state) => ({
+                sessions: state.sessions.map(s => s.id === sessionId ? updated : s),
+                currentSession: state.currentSession?.id === sessionId ? updated : state.currentSession
+            }))
+            return updated
+        } catch (error) {
+            console.error('Failed to confirm time:', error)
+            throw error
+        }
+    },
+
+    joinLobby: async (sessionId: number) => {
+        try {
+            const response = await api.post(`sessions/${sessionId}/join-lobby/`)
+            const updated = response.data
+            set((state) => ({
+                sessions: state.sessions.map(s => s.id === sessionId ? updated : s),
+                currentSession: state.currentSession?.id === sessionId ? updated : state.currentSession
+            }))
+            return updated
+        } catch (error) {
+            console.error('Failed to join lobby:', error)
             throw error
         }
     },

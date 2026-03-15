@@ -30,6 +30,7 @@ class SessionSerializer(serializers.ModelSerializer):
     
     user1_name = serializers.CharField(source='user1.name', read_only=True)
     user2_name = serializers.CharField(source='user2.name', read_only=True)
+    proposer_name = serializers.CharField(source='proposer.name', read_only=True)
     user1_teaching_time = serializers.SerializerMethodField()
     user2_teaching_time = serializers.SerializerMethodField()
     active_timer = serializers.SerializerMethodField()
@@ -47,12 +48,29 @@ class SessionSerializer(serializers.ModelSerializer):
             'start_time',
             'end_time',
             'is_active',
+            'status',
+            'scheduled_time',
+            'proposed_time',
+            'proposer',
+            'proposer_name',
+            'room_id',
+            'user1_lobby_joined_at',
+            'user2_lobby_joined_at',
             'total_duration',
             'user1_teaching_time',
             'user2_teaching_time',
             'active_timer',
         ]
-        read_only_fields = ['id', 'start_time', 'end_time', 'is_active']
+        read_only_fields = [
+            'id', 
+            'start_time', 
+            'end_time', 
+            'is_active', 
+            'status', 
+            'room_id',
+            'user1_lobby_joined_at',
+            'user2_lobby_joined_at'
+        ]
     
     def get_user1_teaching_time(self, obj):
         return obj.get_teaching_time(obj.user1)

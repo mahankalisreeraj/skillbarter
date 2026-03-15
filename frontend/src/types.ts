@@ -68,6 +68,8 @@ export interface SessionTimer {
     is_running: boolean
 }
 
+export type SessionStatus = 'pending' | 'accepted' | 'scheduled' | 'active' | 'completed' | 'expired' | 'rejected'
+
 export interface Session {
     id: number
     user1: number
@@ -78,12 +80,18 @@ export interface Session {
     start_time: string
     end_time: string | null
     is_active: boolean
+    status: SessionStatus
+    scheduled_time: string | null
+    proposed_time: string | null
+    proposer: number | null
+    proposer_name?: string
+    room_id: string | null
+    user1_lobby_joined_at: string | null
+    user2_lobby_joined_at: string | null
     total_duration: number
     user1_teaching_time: number
     user2_teaching_time: number
     active_timer: SessionTimer | null
-    user1_last_room_presence: string | null
-    user2_last_room_presence: string | null
 }
 
 export interface SessionCreate {

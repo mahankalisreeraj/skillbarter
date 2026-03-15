@@ -273,21 +273,22 @@ export default function SessionPage() {
         navigate('/search')
     }
 
+    const session = sessionSocket.session
+
+    // Join lobby if scheduled
+    useEffect(() => {
+        if (session && session.status === 'scheduled') {
+            useSessionsStore.getState().joinLobby(parseInt(sessionId || '0'))
+        }
+    }, [session?.status, sessionId])
+
     if (!sessionId || sessionId === 'undefined' || !user) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 gap-4 animate-fade-in">
-                <div className="text-center space-y-2">
-                    <p className="text-slate-500 text-lg">Loading session or invalid session ID...</p>
-                    <p className="text-xs text-slate-400 font-mono">
-                        Debug: ID={sessionId || 'missing'}, User={user ? 'present' : 'missing'}
-                    </p>
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-slate-500">Connecting to session hub...</p>
                 </div>
-                <button
-                    onClick={() => navigate('/search')}
-                    className="btn-primary"
-                >
-                    Back to Search
-                </button>
             </div>
         )
     }
@@ -298,11 +299,84 @@ export default function SessionPage() {
         { id: 'code', label: 'IDE', icon: '💻' },
     ]
 
-    const peerName = sessionSocket.session
-        ? (sessionSocket.session.user1 === user.id
-            ? sessionSocket.session.user2_name
-            : sessionSocket.session.user1_name)
+    const peerName = session
+        ? (session.user1 === user.id
+            ? session.user2_name
+            : session.user1_name)
         : 'Peer'
+
+    if (session && session.status === 'expired') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 animate-fade-in">
+                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-4xl">⏰</div>
+                <div className="text-center space-y-2">
+                    <h2 className="text-2xl font-bold text-slate-900">Session Expired</h2>
+                    <p className="text-slate-500">Neither participant joined within the 10-minute grace period.</p>
+                    <p className="text-red-500 font-bold">Credit penalty may have been applied.</p>
+                </div>
+                <button onClick={() => navigate('/sessions')} className="btn-secondary">Return to Hub</button>
+            </div>
+        )
+    }
+
+    // Lobby View
+    if (session && session.status === 'scheduled') {
+        const isPeerInLobby = session.user1 === user.id ? !!session.user2_lobby_joined_at : !!session.user1_lobby_joined_at
+        
+        return (
+            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-white">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="max-w-md w-full card p-8 text-center space-y-8 shadow-2xl relative"
+                >
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-primary" />
+                    
+                    <div className="space-y-2">
+                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-2xl animate-spin-slow">🛋️</div>
+                        <h2 className="text-2xl font-black text-slate-900">Meeting Lobby</h2>
+                        <p className="text-sm text-slate-500">Waiting for all participants to enter the room.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl bg-primary text-white space-y-2">
+                            <p className="text-[10px] uppercase font-bold tracking-widest opacity-80">You</p>
+                            <p className="font-bold truncate">{user.name}</p>
+                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Ready</span>
+                        </div>
+                        <div className={clsx(
+                            "p-4 rounded-xl border-2 transition-all space-y-2",
+                            isPeerInLobby ? "border-green-500 bg-green-50" : "border-slate-100 bg-slate-50 opacity-60"
+                        )}>
+                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Peer</p>
+                            <p className="font-bold truncate text-slate-900">{peerName}</p>
+                            <span className={clsx(
+                                "text-xs px-2 py-0.5 rounded-full",
+                                isPeerInLobby ? "bg-green-500 text-white" : "bg-slate-200 text-slate-500"
+                            )}>
+                                {isPeerInLobby ? 'Joined' : 'Waiting...'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
+                        <p className="text-xs font-bold text-amber-800 flex items-center gap-2">
+                            <span>⚠️</span> Session Rules
+                        </p>
+                        <ul className="text-[10px] text-amber-700 space-y-1 list-disc ml-4">
+                            <li>Session activates automatically when both are in this lobby.</li>
+                            <li>If both don't join within 10 minutes of start time, session expires.</li>
+                            <li>No-shows result in a <strong>1 credit penalty</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <button onClick={() => navigate('/sessions')} className="btn-secondary flex-1 py-3 text-xs">Exit to Hub</button>
+                    </div>
+                </motion.div>
+            </div>
+        )
+    }
 
     return (
         <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in">

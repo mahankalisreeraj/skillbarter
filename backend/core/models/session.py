@@ -9,15 +9,25 @@ class Session(models.Model):
     Tracks start/end time and overall session state.
     """
     
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('scheduled', 'Scheduled'),
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('expired', 'Expired'),
+        ('rejected', 'Rejected'),
+    ]
+
     user1 = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='sessions_as_user1'
+        related_name='sessions_as_learner' # user1 is Learner
     )
     user2 = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='sessions_as_user2'
+        related_name='sessions_as_teacher' # user2 is Teacher
     )
     learning_request = models.ForeignKey(
         'LearningRequestPost',
@@ -29,6 +39,27 @@ class Session(models.Model):
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    
+    # Scheduling fields
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    scheduled_time = models.DateTimeField(null=True, blank=True)
+    proposed_time = models.DateTimeField(null=True, blank=True)
+    proposer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='proposed_sessions'
+    )
+    room_id = models.CharField(max_length=100, blank=True, unique=True, null=True)
+
+    # Lobby Presence Tracking
+    user1_lobby_joined_at = models.DateTimeField(null=True, blank=True)
+    user2_lobby_joined_at = models.DateTimeField(null=True, blank=True)
     
     # Collaborative data for polling sync
     whiteboard_data = models.JSONField(null=True, blank=True)

@@ -125,21 +125,13 @@ export default function SearchPage() {
     const handleConnect = async (post: LearningPost) => {
         if (!user) return
 
-        const isOnline = isUserOnline(post.creator_id)
-        if (!isOnline) {
-            setOfflinePeer({
-                name: post.creator_name,
-                availability: post.creator_availability || "Not specified"
-            })
-            return // Stop here, don't navigate or create session
-        }
-
         setConnectingPostId(post.id)
         try {
-            const session = await createSession(post.creator_id, post.id)
-            navigate(`/session/${session.id}`)
+            await createSession(post.creator_id, post.id)
+            // Redirect to sessions page to see the pending request
+            navigate('/sessions')
         } catch (error) {
-            console.error('Failed to create session:', error)
+            console.error('Failed to create session request:', error)
         } finally {
             setConnectingPostId(null)
         }
