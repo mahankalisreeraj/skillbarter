@@ -264,7 +264,7 @@ export default function ProfilePage() {
             </motion.div>
 
             {/* Streak Progress (only for own profile) */}
-            {isOwnProfile && profile.login_streak !== undefined && (
+            {isOwnProfile && (
                 <motion.div variants={itemVariants} className="card bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold flex items-center gap-2">
@@ -272,7 +272,7 @@ export default function ProfilePage() {
                             7-Day Login Streak
                         </h3>
                         <div className="text-primary font-bold bg-primary/10 px-3 py-1 rounded-full text-sm">
-                            Day {profile.login_streak} / 7
+                            Day {profile.login_streak || 0} / 7
                         </div>
                     </div>
                     
@@ -280,13 +280,13 @@ export default function ProfilePage() {
                     <div className="w-full bg-slate-200 rounded-full h-3 mb-2 overflow-hidden">
                         <div 
                             className="bg-gradient-to-r from-orange-400 to-orange-600 h-3 rounded-full transition-all duration-1000 ease-out"
-                            style={{ width: `${(profile.login_streak / 7) * 100}%` }}
+                            style={{ width: `${((profile.login_streak || 0) / 7) * 100}%` }}
                         ></div>
                     </div>
                     <p className="text-sm text-slate-500 text-center">
-                        {profile.login_streak >= 7 
+                        {(profile.login_streak || 0) >= 7 
                             ? "You've earned your 7 credits! Come back tomorrow for a new streak."
-                            : `Log in ${7 - profile.login_streak} more consecutive days to earn 7 free credits!`}
+                            : `Log in ${7 - (profile.login_streak || 0)} more consecutive days to earn 7 free credits!`}
                     </p>
                 </motion.div>
             )}
