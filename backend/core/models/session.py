@@ -122,6 +122,7 @@ class Session(models.Model):
     def end_session(self):
         """End the session and stop any running timers."""
         self.is_active = False
+        self.status = 'completed'
         self.end_time = timezone.now()
         
         # Stop any running timers
@@ -129,7 +130,7 @@ class Session(models.Model):
         for timer in running_timers:
             timer.stop()
         
-        self.save(update_fields=['is_active', 'end_time'])
+        self.save(update_fields=['is_active', 'status', 'end_time'])
     
     def has_active_timer(self):
         """Check if there's an active timer in this session."""

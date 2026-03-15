@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import clsx from 'clsx'
 
 interface VideoCallProps {
     sessionId: string
@@ -17,23 +18,22 @@ const ICE_SERVERS = {
 export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }: VideoCallProps) {
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
     const [localStream, setLocalStream] = useState<MediaStream | null>(null)
-
-    // ... (lines 20-33)
-    // Initialize state from sessionStorage (scoped to sessionId) or default
+    const [isSharingScreen, setIsSharingScreen] = useState(false)
     const [isMuted, setIsMuted] = useState(() => {
         const stored = sessionStorage.getItem(`session_media_${sessionId}_muted`)
-        return stored !== null ? stored === 'true' : false // Default: Mic ON (isMuted=false)
+        return stored !== null ? stored === 'true' : false
     })
     const [isVideoOff, setIsVideoOff] = useState(() => {
         const stored = sessionStorage.getItem(`session_media_${sessionId}_video_off`)
-        return stored !== null ? stored === 'true' : true // Default: Video OFF (isVideoOff=true)
+        return stored !== null ? stored === 'true' : true
     })
 
-    const [connectionState, setConnectionState] = useState<string>('new')
 
     const localVideoRef = useRef<HTMLVideoElement>(null)
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
     const peerRef = useRef<RTCPeerConnection | null>(null)
+    const screenStreamRef = useRef<MediaStream | null>(null)
 
     // Helper to send signals
     const sendSignal = useCallback((type: string, data: any) => {
@@ -50,7 +50,6 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
         let stream: MediaStream | null = null
 
         const init = async () => {
-            // ... (lines 54-118: logic stays the same) ...
             try {
                 // Determine constraints based on user preferences
                 const constraints = {
@@ -97,25 +96,14 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
 
                 // Handle Connection State
                 pc.onconnectionstatechange = () => {
-                    console.log('DEBUG: Connection State Change:', pc.connectionState)
-                    if (mounted) setConnectionState(pc.connectionState)
-                }
-
-                pc.oniceconnectionstatechange = () => {
-                    console.log('DEBUG: ICE Connection State Change:', pc.iceConnectionState)
-                }
-
-                pc.onicegatheringstatechange = () => {
-                    console.log('DEBUG: ICE Gathering State Change:', pc.iceGatheringState)
+                    // State monitoring
                 }
 
                 // Handle Remote Stream
                 pc.ontrack = (event) => {
-                    console.log('DEBUG: Track Received', event.streams.length, event.track.kind)
                     if (mounted) {
                         setRemoteStream(event.streams[0])
                         if (remoteVideoRef.current) {
-                            console.log('DEBUG: Setting Remote Video srcObject')
                             remoteVideoRef.current.srcObject = event.streams[0]
                         }
                     }
@@ -124,7 +112,7 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
                 // Announce ready
                 setTimeout(() => {
                     sendSignal('ready', {})
-                }, 500) // Small delay to ensure partner is polling
+                }, 500)
 
             } catch (err) {
                 console.error('Failed to access media devices', err)
@@ -135,13 +123,14 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
 
         return () => {
             mounted = false
-            // CRITICAL: Stop all tracks to turn off camera light
+            // stop all tracks
             stream?.getTracks().forEach(t => t.stop())
             localStream?.getTracks().forEach(t => t.stop())
+            screenStreamRef.current?.getTracks().forEach(t => t.stop())
             peerRef.current?.close()
             peerRef.current = null
         }
-    }, [isConnected, isVideoOff]) // Re-run if connection or video preference changes
+    }, [isConnected, isVideoOff])
 
 
     // Handle incoming signals
@@ -150,14 +139,7 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
             const payload = e.detail
             const pc = peerRef.current
 
-            console.log('SIGNAL DEBUG: Received', payload.type, 'SignalingState:', pc?.signalingState)
-
-            console.log('DEBUG: VideoCall Signal Received', JSON.stringify({ type: payload.type, isCaller, signalingState: pc?.signalingState }))
-
-            if (!pc) {
-                console.warn('DEBUG: RTCPeerConnection not initialized')
-                return
-            }
+            if (!pc) return
 
             try {
                 if (payload.type === 'ready') {
@@ -235,7 +217,7 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
 
         window.addEventListener('signal' as any, handleSignal)
         return () => window.removeEventListener('signal' as any, handleSignal)
-    }, [sendSignal, isCaller, remoteStream])
+    }, [sendSignal, isCaller])
 
 
     const toggleMute = () => {
@@ -250,7 +232,6 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
     // Sync remote stream to video element when it becomes available
     useEffect(() => {
         if (remoteStream && remoteVideoRef.current) {
-            console.log('DEBUG: Syncing Remote Stream to Video Element', remoteStream.id)
             remoteVideoRef.current.srcObject = remoteStream
         }
     }, [remoteStream])
@@ -260,68 +241,121 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
         setIsVideoOff(newVideoOff)
         sessionStorage.setItem(`session_media_${sessionId}_video_off`, String(newVideoOff))
 
-        // If we connect logic to re-negotiate, we need to restart the stream
-        // For simple approach: just toggle track enabled/disabled
-        // But to turn OFF light, we must STOP the track.
-
         if (localStream) {
             const videoTracks = localStream.getVideoTracks()
             if (newVideoOff) {
-                // STOP tracks to turn off camera light
                 videoTracks.forEach(track => {
                     track.stop()
                     localStream.removeTrack(track)
                 })
             } else {
-                // Request new video stream
                 try {
                     const videoStream = await navigator.mediaDevices.getUserMedia({ video: true })
                     const videoTrack = videoStream.getVideoTracks()[0]
                     localStream.addTrack(videoTrack)
                     if (peerRef.current) {
-                        peerRef.current.addTrack(videoTrack, localStream)
-                        // Note: Adding a track might require renegotiation in a robust WebRTC app
-                        // Assuming simple case or existing negotiation handles it
-                        // For fully robust renegotiation, simpler to just force refresh/reload or simpler toggle enabled
-                        // But user specifically wants light OFF.
+                        const sender = peerRef.current.getSenders().find(s => s.track?.kind === 'video')
+                        if (sender) {
+                            sender.replaceTrack(videoTrack)
+                        } else {
+                            peerRef.current.addTrack(videoTrack, localStream)
+                        }
                     }
                     if (localVideoRef.current) {
                         localVideoRef.current.srcObject = localStream
                     }
                 } catch (e) {
                     console.error("Failed to restart video", e)
-                    setIsVideoOff(true) // Revert
+                    setIsVideoOff(true)
                 }
             }
         }
     }
 
+    const startScreenShare = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true })
+            const screenTrack = stream.getVideoTracks()[0]
+            screenStreamRef.current = stream
+
+            if (peerRef.current) {
+                const sender = peerRef.current.getSenders().find(s => s.track?.kind === 'video')
+                if (sender) {
+                    await sender.replaceTrack(screenTrack)
+                }
+            }
+
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = stream
+            }
+
+            screenTrack.onended = () => {
+                stopScreenShare()
+            }
+
+            setIsSharingScreen(true)
+        } catch (err) {
+            console.error("Failed to share screen", err)
+        }
+    }
+
+    const stopScreenShare = async () => {
+        if (screenStreamRef.current) {
+            screenStreamRef.current.getTracks().forEach(t => t.stop())
+            screenStreamRef.current = null
+        }
+
+        if (localStream && peerRef.current) {
+            const videoTrack = localStream.getVideoTracks()[0]
+            const sender = peerRef.current.getSenders().find(s => s.track?.kind === 'video')
+            if (sender && videoTrack) {
+                await sender.replaceTrack(videoTrack)
+            }
+            if (localVideoRef.current) {
+                localVideoRef.current.srcObject = localStream
+            }
+        }
+        setIsSharingScreen(false)
+    }
+
+    const toggleFullScreen = (element: HTMLDivElement | null) => {
+        if (!element) return
+        if (!document.fullscreenElement) {
+            element.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`)
+            })
+        } else {
+            document.exitFullscreen()
+        }
+    }
+
     return (
-        <div className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center">
-            {/* Remote Video (Main) */}
+        <div ref={containerRef} className="relative w-full h-full bg-black overflow-hidden flex items-center justify-center group">
+            {/* Main Video Area */}
             {remoteStream ? (
                 <video
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
-                    className="w-full h-full object-contain"
-                    onLoadedMetadata={() => console.log('DEBUG: Remote Video Metadata Loaded')}
-                    onPlay={() => console.log('DEBUG: Remote Video Playing')}
-                    onPause={() => console.warn('DEBUG: Remote Video Paused')}
-                    onError={(e) => console.error('DEBUG: Remote Video Error', e)}
+                    className={clsx(
+                        "w-full h-full transition-all duration-500",
+                        isSharingScreen ? "object-contain" : "object-cover"
+                    )}
                 />
             ) : (
                 <div className="text-slate-500 flex flex-col items-center z-10">
                     <span className="text-4xl mb-2 animate-pulse">👤</span>
-                    <span>Waiting for partner... ({connectionState})</span>
-                    <div className="text-xs mt-2 font-mono opacity-50">
-                        Debug: {sessionId}
-                    </div>
+                    <span>Waiting for partner...</span>
                 </div>
             )}
 
-            {/* Local Video (PiP) */}
-            <div className="absolute top-4 right-4 w-32 h-24 md:w-48 md:h-36 bg-black rounded-lg border border-white/10 overflow-hidden shadow-lg z-20 transition-all hover:scale-105">
+            {/* Local Video PiP / Overlay */}
+            <div className={clsx(
+                "absolute transition-all duration-500 ease-in-out border border-white/10 overflow-hidden shadow-2xl z-20 group-hover:opacity-100",
+                isSharingScreen 
+                    ? "bottom-24 right-6 w-64 h-48 rounded-2xl ring-4 ring-primary/20" 
+                    : "top-4 right-4 w-32 h-24 md:w-48 md:h-36 rounded-lg opacity-80"
+            )}>
                 {!isVideoOff ? (
                     <video
                         ref={localVideoRef}
@@ -337,30 +371,68 @@ export default function VideoCall({ sessionId, onSignal, isConnected, isCaller }
                 )}
             </div>
 
-            {/* Controls */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 p-3 bg-white/80 backdrop-blur-md rounded-full border border-primary/10 z-20 shadow-xl">
+            {/* Action Bar */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-white/10 z-30 shadow-2xl opacity-40 hover:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
                 <button
                     onClick={toggleMute}
-                    className={`p-4 rounded-full transition-all duration-200 ${isMuted ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
-                    title={isMuted ? "Unmute" : "Mute"}
+                    className={clsx(
+                        "p-3 rounded-xl transition-all",
+                        isMuted ? "bg-red-500 text-white" : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                    title={isMuted ? "Unmute Mic" : "Mute Mic"}
                 >
                     {isMuted ? '🔇' : '🎤'}
                 </button>
                 <button
                     onClick={toggleVideo}
-                    className={`p-4 rounded-full transition-all duration-200 ${isVideoOff ? 'bg-red-500/90 text-white hover:bg-red-600' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}
-                    title={isVideoOff ? "Start Video" : "Stop Video"}
+                    className={clsx(
+                        "p-3 rounded-xl transition-all",
+                        isVideoOff ? "bg-red-500 text-white" : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                    title={isVideoOff ? "Start Camera" : "Stop Camera"}
                 >
                     {isVideoOff ? '🚫' : '📹'}
                 </button>
+                
+                <div className="w-px h-6 bg-white/10 mx-1" />
+
+                <button
+                    onClick={isSharingScreen ? stopScreenShare : startScreenShare}
+                    className={clsx(
+                        "p-3 rounded-xl transition-all flex items-center gap-2",
+                        isSharingScreen ? "bg-primary text-white" : "bg-white/10 text-white hover:bg-white/20"
+                    )}
+                    title={isSharingScreen ? "Stop Sharing" : "Share Screen"}
+                >
+                    <span className="text-lg">🖥️</span>
+                    {isSharingScreen && <span className="text-xs font-bold uppercase tracking-wider pr-1">Sharing</span>}
+                </button>
+
+                <button
+                    onClick={() => toggleFullScreen(containerRef.current)}
+                    className="p-3 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all"
+                    title="Toggle Full Screen"
+                >
+                    <span className="text-lg">🔲</span>
+                </button>
+
+                <div className="w-px h-6 bg-white/10 mx-1" />
+
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('end_session'))}
+                    className="p-3 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                    title="Leave Room"
+                >
+                    <span className="text-lg">🚪</span>
+                </button>
             </div>
 
-            {/* Debug Overlay */}
-            <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm p-2 rounded text-[10px] text-white/70 font-mono pointer-events-none z-30">
-                <p>Role: {isCaller ? 'Caller' : 'Callee'}</p>
-                <p>Status: {connectionState}</p>
-                <p>ICE: {peerRef.current?.iceConnectionState || '-'}</p>
-            </div>
+            {/* Sharing Indicator Banner */}
+            {isSharingScreen && (
+                <div className="absolute top-0 left-0 w-full bg-primary/90 text-white text-[10px] font-bold uppercase tracking-[0.2em] py-1 text-center z-30 animate-pulse">
+                    Currently Sharing Your Screen
+                </div>
+            )}
 
             <style>{`
                 .mirror-mode {
