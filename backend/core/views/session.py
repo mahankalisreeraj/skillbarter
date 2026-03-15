@@ -4,15 +4,18 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 import uuid
 
-from ..models import Session, SessionTimer, CreditTransaction, Bank
+from ..models import Session, SessionTimer, CreditTransaction, Bank, LearningRequestPost
 from ..serializers import (
     SessionSerializer,
     SessionCreateSerializer,
     SessionTimerSerializer
 )
 from ..utils import calculate_credits
+
+User = get_user_model()
 
 
 class SessionViewSet(viewsets.ModelViewSet):
