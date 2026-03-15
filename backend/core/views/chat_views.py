@@ -37,7 +37,7 @@ class ChatViewSet(viewsets.ViewSet):
             # Reverse to maintain chronological order for initial load
             messages = list(messages)[::-1]
             
-        serializer = ChatMessageSerializer(messages, many=True)
+        serializer = ChatMessageSerializer(messages, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'], url_path='send')

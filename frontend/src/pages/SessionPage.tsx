@@ -128,10 +128,15 @@ function ChatPanel({ className, messages, onSendMessage, isConnected }: ChatPane
                                             href={msg.file_url} 
                                             target="_blank" 
                                             rel="noopener noreferrer"
+                                            download={msg.file_name}
                                             className={clsx(
                                                 "flex items-center gap-2 p-2 rounded-lg border transition-colors",
                                                 isMe ? "bg-white/10 border-white/20 hover:bg-white/20" : "bg-white border-slate-200 hover:border-primary/30"
                                             )}
+                                            onClick={(e) => {
+                                                // Optional: prevent bubbling if this is inside another clickable element
+                                                e.stopPropagation();
+                                            }}
                                         >
                                             <span className="text-xl">{getFileIcon(msg.file_name)}</span>
                                             <div className="flex flex-col min-w-0">
