@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true })
                 try {
                     const response = await api.post('auth/login/', { email, password })
-                    const { tokens, user } = response.data
+                    const { tokens, user, streak_rewarded } = response.data
                     const { access, refresh } = tokens
 
                     // Persist tokens to localStorage explicitly
@@ -50,6 +50,13 @@ export const useAuthStore = create<AuthState>()(
                         refreshToken: refresh,
                         isAuthenticated: true,
                     })
+
+                    // Handle streak reward notification
+                    if (streak_rewarded) {
+                        setTimeout(() => {
+                            alert('🎉 Congratulations! You have maintained a 7-day login streak and earned 7 Credits!');
+                        }, 500);
+                    }
                 } finally {
                     set({ isLoading: false })
                 }

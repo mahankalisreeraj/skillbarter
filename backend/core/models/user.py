@@ -77,6 +77,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text='Last time user requested support credits'
     )
     
+    # Login Streak Tracking
+    last_login_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text='Last date the user logged in for streak tracking'
+    )
+    login_streak = models.IntegerField(
+        default=0,
+        help_text='Current consecutive login streak in days'
+    )
+    
     # Standard Django user fields
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

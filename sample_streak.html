@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streak UI Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6', // blue-500
+                        'primary-dark': '#2563eb', // blue-600
+                        accent: '#8b5cf6', // violet-500
+                        'accent-dark': '#7c3aed', // violet-600
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+
+    <div class="max-w-3xl mx-auto space-y-12">
+        
+        <!-- Section 1: Header UI -->
+        <section>
+            <h2 class="text-xl font-bold mb-4 text-gray-700">1. Header Streak Indicator</h2>
+            <div class="bg-white p-4 rounded-xl border border-gray-200 flex items-center justify-end">
+                
+                <!-- The component from Header.tsx -->
+                <div class="flex items-center gap-3 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                    <!-- Streak Indicator -->
+                    <div class="flex items-center gap-1 group relative cursor-help" title="Current login streak: 5 days">
+                        <span class="text-orange-500 font-bold text-lg animate-pulse" style="line-height:1;">🔥</span>
+                        <span class="font-bold text-orange-600">5</span>
+                    </div>
+                    
+                    <div class="w-px h-4 bg-primary/20"></div>
+
+                    <!-- Credits -->
+                    <div class="flex items-center gap-1">
+                        <span class="text-yellow-400 font-bold" style="line-height:1;">💰</span>
+                        <span class="font-medium text-primary">22.00</span>
+                        <span class="text-slate-500 text-sm hidden md:inline">credits</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 2: Profile Page UI -->
+        <section>
+            <h2 class="text-xl font-bold mb-4 text-gray-700">2. Profile Page Progress Card</h2>
+            
+            <!-- The component from ProfilePage.tsx -->
+            <div class="card bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <span class="text-2xl animate-pulse" style="line-height:1;">🔥</span> 
+                        7-Day Login Streak
+                    </h3>
+                    <div class="text-primary font-bold bg-primary/10 px-3 py-1 rounded-full text-sm">
+                        Day 5 / 7
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-200 rounded-full h-3 mb-2 overflow-hidden">
+                    <div 
+                        class="bg-gradient-to-r from-orange-400 to-orange-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                        style="width: 71.4%"
+                    ></div>
+                </div>
+                <p class="text-sm text-slate-500 text-center">
+                    Log in 2 more consecutive days to earn 7 free credits!
+                </p>
+            </div>
+            
+        </section>
+
+    </div>
+
+</body>
+</html>

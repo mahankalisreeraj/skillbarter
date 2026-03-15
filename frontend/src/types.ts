@@ -14,6 +14,8 @@ export interface User {
     date_joined: string
     average_rating: number | null
     total_reviews: number
+    login_streak: number
+    last_login_date: string | null
 }
 
 export interface UserPublic {

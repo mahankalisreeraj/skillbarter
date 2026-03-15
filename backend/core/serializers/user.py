@@ -23,8 +23,10 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined',
             'average_rating',
             'total_reviews',
+            'login_streak',
+            'last_login_date',
         ]
-        read_only_fields = ['id', 'email', 'credits', 'date_joined']
+        read_only_fields = ['id', 'email', 'credits', 'date_joined', 'login_streak', 'last_login_date']
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

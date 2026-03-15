@@ -92,12 +92,23 @@ export default function Header() {
                 <nav className="flex items-center gap-4" role="navigation" aria-label="User menu">
                     {isAuthenticated ? (
                         <>
-                            {/* Credits Display */}
+                            {/* Streak & Credits Display */}
                             {user && (
-                                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-lg">
-                                    <span className="text-yellow-400">💰</span>
-                                    <span className="font-medium text-primary">{Number(user.credits).toFixed(2)}</span>
-                                    <span className="text-slate-500 text-sm">credits</span>
+                                <div className="hidden sm:flex items-center gap-3 px-3 py-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                                    {/* Streak Indicator */}
+                                    <div className="flex items-center gap-1 group relative cursor-help" title={`Current login streak: ${user.login_streak} days`}>
+                                        <span className={user.login_streak > 0 ? "text-orange-500 animate-pulse" : "text-slate-400 grayscale"}>🔥</span>
+                                        <span className={`font-bold ${user.login_streak > 0 ? "text-orange-600" : "text-slate-500"}`}>{user.login_streak}</span>
+                                    </div>
+                                    
+                                    <div className="w-px h-4 bg-primary/20"></div>
+
+                                    {/* Credits */}
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-yellow-400">💰</span>
+                                        <span className="font-medium text-primary">{Number(user.credits).toFixed(2)}</span>
+                                        <span className="text-slate-500 text-sm hidden md:inline">credits</span>
+                                    </div>
                                 </div>
                             )}
 

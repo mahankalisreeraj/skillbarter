@@ -60,6 +60,7 @@ class LoginView(APIView):
 
     def post(self, request):
         from django.contrib.auth import authenticate
+        from django.utils import timezone
         
         email = request.data.get('email', '').lower().strip()
         password = request.data.get('password', '')
@@ -84,11 +85,47 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         
+        # Streak logic
+        today = timezone.now().date()
+        streak_rewarded = False
+        
+        if user.last_login_date != today:
+            if user.last_login_date == today - timezone.timedelta(days=1):
+                # Consecutive day login
+                user.login_streak += 1
+            else:
+                # Missed a day or first login
+                user.login_streak = 1
+                
+            user.last_login_date = today
+            
+            # Check for 7-day reward
+            if user.login_streak >= 7:
+                from ..models import CreditTransaction
+                from decimal import Decimal
+                
+                reward_amount = Decimal('7.00')
+                user.credits += reward_amount
+                
+                CreditTransaction.objects.create(
+                    user=user,
+                    amount=reward_amount,
+                    transaction_type='BOUNTY',
+                    balance_after=user.credits,
+                    description='7-Day Login Streak Reward'
+                )
+                
+                user.login_streak = 0
+                streak_rewarded = True
+                
+            user.save(update_fields=['last_login_date', 'login_streak', 'credits'])
+        
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
         
         return Response({
             'user': UserSerializer(user).data,
+            'streak_rewarded': streak_rewarded,
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
