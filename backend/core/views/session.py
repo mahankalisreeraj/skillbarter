@@ -320,13 +320,12 @@ class SessionViewSet(viewsets.ModelViewSet):
             'is_peer_in_room': is_peer_in_room,
             'whiteboard_data': session.whiteboard_data,
             'code_data': session.code_data,
-            'last_sync_time': session.last_sync_time,
+            'last_sync_time': session.last_sync_time.isoformat() if session.last_sync_time else None,
             'last_sync_by': session.last_sync_by_id,
-            'your_credits': float(user.credits),
-            'penalty_applied': penalty_applied,
+            'sync_version': session.sync_version,
             'signal_data': session.signal_data,
-            'signal_sender': session.signal_sender_id,
-            'signal_timestamp': session.signal_timestamp
+            'signal_timestamp': session.signal_timestamp,
+            'your_credits': float(user.credits),
         }
         
         return Response(data)
@@ -336,6 +335,7 @@ class SessionViewSet(viewsets.ModelViewSet):
         """
         Receive whiteboard/code updates from clients.
         """
+        from django.utils import timezone
         session = self.get_object()
         
         # Verify user is participant
@@ -345,9 +345,19 @@ class SessionViewSet(viewsets.ModelViewSet):
         whiteboard_data = request.data.get('whiteboard_data')
         code_data = request.data.get('code_data')
         signal_data = request.data.get('signal_data')
+        now = timezone.now()
         
-        update_fields = ['last_sync_time', 'last_sync_by']
-        session.last_sync_by = request.user
+        # Only update sync metadata when actual collaborative data changes
+        has_collab_data = whiteboard_data is not None or code_data is not None
+        update_fields = []
+        
+        if has_collab_data:
+            session.last_sync_time = now
+            session.last_sync_by = request.user
+            # FIX: Increment version counter so frontend can detect changes
+            # using an integer instead of a timestamp (immune to clock skew)
+            session.sync_version = (session.sync_version or 0) + 1
+            update_fields.extend(['last_sync_time', 'last_sync_by', 'sync_version'])
         
         if whiteboard_data is not None:
             # Strip source: 'local' to ensure polling clients accept it
@@ -369,7 +379,6 @@ class SessionViewSet(viewsets.ModelViewSet):
                 session.signal_data = {}
             
             sig_type = signal_data.get('type')
-            # Add sender info to signal_data if not present
             signal_data['sender_id'] = request.user.id
             
             if sig_type in ['offer', 'answer']:
@@ -377,22 +386,23 @@ class SessionViewSet(viewsets.ModelViewSet):
             elif sig_type == 'ready':
                 role = 'caller' if request.user == session.user1 else 'callee'
                 session.signal_data[f'ready_{role}'] = True
-                # Also store the raw signal for dispatch
                 session.signal_data['ready_signal'] = signal_data
             elif sig_type == 'candidate':
-                # Separate candidates by role to avoid overwriting
                 role = 'caller' if request.user == session.user1 else 'callee'
                 key = f'candidates_{role}'
                 candidates = session.signal_data.get(key, [])
                 candidates.append(signal_data)
-                session.signal_data[key] = candidates[-10:] # Keep last 10
+                session.signal_data[key] = candidates[-10:]
             
             session.signal_sender = request.user
+            session.signal_timestamp = now
             update_fields.extend(['signal_data', 'signal_sender', 'signal_timestamp'])
-            
-        session.save(update_fields=update_fields)
         
-        return Response({'status': 'synced'})
+        if update_fields:
+            session.save(update_fields=update_fields)
+        
+        return Response({'status': 'synced', 'sync_version': session.sync_version})
+
     
     @action(detail=True, methods=['post'])
     def end(self, request, pk=None):

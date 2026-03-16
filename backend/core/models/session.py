@@ -64,7 +64,9 @@ class Session(models.Model):
     # Collaborative data for polling sync
     whiteboard_data = models.JSONField(null=True, blank=True)
     code_data = models.JSONField(null=True, blank=True)
-    last_sync_time = models.DateTimeField(auto_now=True)
+    # FIX: Use a manually-updated timestamp (not auto_now) so presence pings
+    # don't falsely update last_sync_time and break the peer sync check.
+    last_sync_time = models.DateTimeField(null=True, blank=True)
     last_sync_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -72,6 +74,8 @@ class Session(models.Model):
         blank=True,
         related_name='synced_sessions'
     )
+    # Monotonically increasing version counter for whiteboard/code changes
+    sync_version = models.PositiveIntegerField(default=0)
     
     # WebRTC Signaling via polling
     signal_data = models.JSONField(null=True, blank=True)
@@ -82,7 +86,8 @@ class Session(models.Model):
         blank=True,
         related_name='sent_signals'
     )
-    signal_timestamp = models.DateTimeField(auto_now=True)
+    # FIX: Also manually updated so presence pings don't reset signal detection
+    signal_timestamp = models.DateTimeField(null=True, blank=True)
     
     # Room Presence Tracking (Polling-based)
     user1_last_room_presence = models.DateTimeField(null=True, blank=True)

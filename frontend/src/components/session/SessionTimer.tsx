@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import type { SessionTimer as SessionTimerType } from '@/types'
 
@@ -20,48 +20,50 @@ export default function SessionTimer({
     accumulatedSeconds
 }: SessionTimerProps) {
     const { user } = useAuthStore()
+
+    // FIX: Use a ref for the start time so the interval callback always has
+    // the latest value without being recreated (which would reset the 1s tick).
+    const startTimeRef = useRef<number | null>(null)
     const [currentElapsed, setCurrentElapsed] = useState(0)
 
-    // Calculate elapsed time ONLY if timer is running
     useEffect(() => {
-        if (!activeTimer?.is_running || !activeTimer.start_time) {
+        if (activeTimer?.is_running && activeTimer.start_time) {
+            // Compute server start time once and store in ref
+            startTimeRef.current = new Date(activeTimer.start_time).getTime()
+            
+            // Tick immediately on mount/resume
+            const tick = () => {
+                if (startTimeRef.current !== null) {
+                    const elapsed = Math.max(0, Math.floor((Date.now() - startTimeRef.current) / 1000))
+                    setCurrentElapsed(elapsed)
+                }
+            }
+            tick()
+
+            // FIX: Use a stable 1s interval - it reads from the ref each time so 
+            // it never needs to be rebuilt when activeTimer object changes.
+            const id = setInterval(tick, 1000)
+            return () => clearInterval(id)
+        } else {
+            startTimeRef.current = null
             setCurrentElapsed(0)
-            return
         }
-
-        const startTime = new Date(activeTimer.start_time).getTime()
-
-        const updateElapsed = () => {
-            const now = Date.now()
-            // Ensure we don't get negative elapsed time if client clock is slightly behind
-            const elapsed = Math.max(0, Math.floor((now - startTime) / 1000))
-            setCurrentElapsed(elapsed)
-        }
-
-        updateElapsed()
-        const interval = setInterval(updateElapsed, 1000)
-
-        return () => clearInterval(interval)
     }, [activeTimer?.is_running, activeTimer?.start_time])
 
-    // Total seconds = Accumulated (Past) + Elapsed (Current Session)
     const totalSeconds = accumulatedSeconds + currentElapsed
 
     const formatTime = (seconds: number) => {
         const hrs = Math.floor(seconds / 3600)
         const mins = Math.floor((seconds % 3600) / 60)
         const secs = Math.floor(seconds % 60)
-
         if (hrs > 0) {
             return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
         }
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
 
-    // System Rule: 5 minutes = 1 credit
+    // 5 minutes = 1 credit
     const creditsEarned = (totalSeconds / 300).toFixed(2)
-
-    console.log('DEBUG: SessionTimer Render', { activeTimer, isSessionActive, accumulatedSeconds, currentElapsed, totalSeconds })
 
     const isRunning = !!activeTimer?.is_running
     const isMyTimer = activeTimer?.teacher === user?.id

@@ -33,13 +33,35 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const [error, setError] = useState<string | null>(null)
     const [isPeerInRoom, setIsPeerInRoom] = useState(false)
 
-    const lastSyncTimeRef = useRef<string | null>(null)
+    const lastSyncVersionRef = useRef<number>(0)
     const lastSignalTimeRef = useRef<string | null>(null)
-    const { accessToken, isAuthenticated, user, updateCredits } = useAuthStore()
 
+    // FIX: Extract volatile auth values into refs so they don't rebuild fetchUpdates
+    // every time credits update (which was resetting the polling interval and skipping timer ticks)
+    const { accessToken, isAuthenticated, user, updateCredits } = useAuthStore()
+    const accessTokenRef = useRef(accessToken)
+    const isAuthenticatedRef = useRef(isAuthenticated)
+    const userIdRef = useRef(user?.id)
+    const updateCreditsRef = useRef(updateCredits)
+
+    // Keep refs in sync with latest values
+    useEffect(() => { accessTokenRef.current = accessToken }, [accessToken])
+    useEffect(() => { isAuthenticatedRef.current = isAuthenticated }, [isAuthenticated])
+    useEffect(() => { userIdRef.current = user?.id }, [user?.id])
+    useEffect(() => { updateCreditsRef.current = updateCredits }, [updateCredits])
+
+    // Initialize credits from user on mount
+    useEffect(() => {
+        if (user?.credits !== undefined) {
+            setYourCredits(Number(user.credits))
+        }
+    }, [isAuthenticated, user?.credits])
+
+    // FIX: fetchUpdates now reads from refs, so its reference stays stable across re-renders.
+    // This prevents usePolling from resetting the interval every time credits change.
     const fetchUpdates = useCallback(async () => {
         const id = String(sessionId)
-        if (!sessionId || id === 'undefined' || id === 'NaN' || !accessToken || !isAuthenticated) {
+        if (!sessionId || id === 'undefined' || id === 'NaN' || !accessTokenRef.current || !isAuthenticatedRef.current) {
             return
         }
 
@@ -54,15 +76,16 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
 
             if (data.your_credits !== undefined) {
                 setYourCredits(data.your_credits)
-                updateCredits(data.your_credits)
+                if (updateCreditsRef.current) {
+                    updateCreditsRef.current(data.your_credits)
+                }
             }
 
             // WebRTC Signaling Buffer
             if (data.signal_data && data.signal_timestamp !== lastSignalTimeRef.current) {
                 const sig = data.signal_data
-                const myId = user?.id
+                const myId = userIdRef.current
 
-                // 1. Process discrete signals (offer, answer, ready)
                 if (sig.offer && sig.offer.sender_id !== myId) {
                     window.dispatchEvent(new CustomEvent('signal', { detail: sig.offer }))
                 }
@@ -73,10 +96,8 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
                     window.dispatchEvent(new CustomEvent('signal', { detail: sig.ready_signal }))
                 }
 
-                // 2. Process all recent candidates from the other user
                 const peerRole = data.session.user1 === myId ? 'callee' : 'caller'
                 const peerCandidates = sig[`candidates_${peerRole}`]
-
                 if (peerCandidates && Array.isArray(peerCandidates)) {
                     peerCandidates.forEach((candidate: any) => {
                         window.dispatchEvent(new CustomEvent('signal', { detail: candidate }))
@@ -87,26 +108,31 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
             }
 
             // Collaborative sync (Whiteboard/Code)
-            if (data.last_sync_by !== user?.id && data.last_sync_time !== lastSyncTimeRef.current) {
+            // FIX: Check sync_by AND sync_version to ensure we only apply peer updates,
+            // not our own echoes. sync_version is only updated on real data changes.
+            const isFromPeer = data.last_sync_by !== userIdRef.current
+            const isNewVersion = data.sync_version !== lastSyncVersionRef.current
+
+            if (isFromPeer && isNewVersion) {
                 if (data.whiteboard_data) {
                     window.dispatchEvent(new CustomEvent('whiteboard_update', {
                         detail: { data: data.whiteboard_data }
                     }))
                 }
                 if (data.code_data) {
-                    // Backend returns code_data as a JSON object containing files/activeIndex
                     window.dispatchEvent(new CustomEvent('code_update', {
                         detail: { data: data.code_data }
                     }))
                 }
-                lastSyncTimeRef.current = data.last_sync_time
+                lastSyncVersionRef.current = data.sync_version
             }
         } catch (error) {
             console.error('Failed to poll session updates:', error)
             setIsConnected(false)
             setError('Connection lost. Retrying...')
         }
-    }, [sessionId, accessToken, isAuthenticated, user?.id, updateCredits])
+    }, [sessionId])
+ // FIX: Only depends on sessionId now - auth values read from refs
 
     usePolling(fetchUpdates, {
         interval: POLL_INTERVAL,
@@ -114,10 +140,12 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
         immediate: true
     }, [fetchUpdates])
 
+    // FIX: startTimer/stopTimer now await fetchUpdates so the UI updates INSTANTLY
+    // instead of waiting for the next natural poll (up to 1.5s later)
     const startTimer = useCallback(async () => {
         try {
             await api.post(`/sessions/${sessionId}/timer/start/`)
-            fetchUpdates()
+            await fetchUpdates() // await so UI reflects immediately
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to start timer')
         }
@@ -126,7 +154,7 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const stopTimer = useCallback(async () => {
         try {
             await api.post(`/sessions/${sessionId}/timer/stop/`)
-            fetchUpdates()
+            await fetchUpdates() // await so UI reflects immediately
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to stop timer')
         }
@@ -135,7 +163,7 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const endSession = useCallback(async () => {
         try {
             await api.post(`/sessions/${sessionId}/end/`)
-            fetchUpdates()
+            await fetchUpdates()
         } catch (err: any) {
             setError(err.response?.data?.error || 'Failed to end session')
         }
@@ -144,10 +172,13 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const sendWhiteboard = useCallback(async (data: unknown) => {
         try {
             await api.post(`/sessions/${sessionId}/sync/`, { whiteboard_data: data })
+            // Immediately re-poll so we confirm the sync landed
+            // (don't await — fire-and-forget to avoid blocking drawing)
+            fetchUpdates()
         } catch (error) {
             console.error('Failed to sync whiteboard:', error)
         }
-    }, [sessionId])
+    }, [sessionId, fetchUpdates])
 
     const sendCode = useCallback(async (data: unknown) => {
         try {
@@ -158,8 +189,6 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     }, [sessionId])
 
     const sendMessage = useCallback(async (type: string, data: Record<string, unknown> = {}) => {
-        // Signaling uses this. 
-        // We merge type into data to match the expected format: { type: 'offer', sdp: ... }
         try {
             await api.post(`/sessions/${sessionId}/sync/`, {
                 signal_data: { type, ...data }
@@ -172,13 +201,6 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
     const reconnect = useCallback(() => {
         fetchUpdates()
     }, [fetchUpdates])
-
-    // Initialize credits from user
-    useEffect(() => {
-        if (user?.credits !== undefined) {
-            setYourCredits(Number(user.credits))
-        }
-    }, [isAuthenticated, user?.credits])
 
     return {
         isConnected,
