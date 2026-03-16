@@ -266,13 +266,14 @@ class SessionViewSet(viewsets.ModelViewSet):
             
         # 2. Check for Session Activation (if both are in presence)
         # (This is a more real-time version of join_lobby check)
-        threshold = now - timedelta(seconds=15)
+        threshold = now - timedelta(seconds=30)
         u1_present = session.user1_last_room_presence and session.user1_last_room_presence > threshold
         u2_present = session.user2_last_room_presence and session.user2_last_room_presence > threshold
         
         if u1_present and u2_present and session.status == 'scheduled':
             session.status = 'active'
-            update_fields.append('status')
+            if 'status' not in update_fields:
+                update_fields.append('status')
 
         # 3. Check for Expiration & Penalties (10 minutes after scheduled time)
         penalty_applied = False

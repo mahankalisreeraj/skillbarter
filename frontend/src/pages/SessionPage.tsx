@@ -387,89 +387,116 @@ export default function SessionPage() {
                 <div className="flex-1 lg:w-0 card !p-0 overflow-hidden min-w-0 flex flex-col h-[50vh] lg:h-full bg-surface-elevated relative shadow-xl">
                     {/* Waiting Indicator / Lobby Overlay */}
                     <AnimatePresence>
-                        {(!sessionSocket.isPeerInRoom || (session && session.status === 'scheduled')) && session && session.status !== 'expired' && (
-                            <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+                        {(!sessionSocket.isPeerInRoom) && session && session.status !== 'expired' && session.status !== 'completed' && (
+                            <div className="absolute inset-0 z-30 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center p-4">
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    className="max-w-md w-full card p-8 text-center space-y-8 shadow-2xl border-primary/20 bg-surface/95"
+                                    exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                                    transition={{ type: "spring", damping: 25, stiffness: 120 }}
+                                    className="max-w-xl w-full relative group"
                                 >
-                                    <div className="space-y-2">
-                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-3xl animate-pulse">
-                                            🛋️
-                                        </div>
-                                        <h3 className="text-2xl font-black text-slate-900">
-                                            {session.status === 'scheduled' ? 'Meeting Lobby' : 'Waiting Area'}
-                                        </h3>
-                                        {session.status === 'scheduled' && session.scheduled_time && (
-                                            <div className="bg-primary/5 py-2 px-4 rounded-lg inline-block border border-primary/10">
-                                                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Scheduled for</p>
-                                                <p className="text-sm font-semibold text-slate-700">
-                                                    {new Date(session.scheduled_time).toLocaleString([], { 
-                                                        weekday: 'short', 
-                                                        month: 'short', 
-                                                        day: 'numeric', 
-                                                        hour: '2-digit', 
-                                                        minute: '2-digit' 
-                                                    })}
+                                    {/* Decorative background glow */}
+                                    <div className="absolute -inset-4 bg-gradient-to-tr from-primary/30 to-purple-500/30 rounded-[2.5rem] blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+                                    
+                                    <div className="relative glass-card border-white/20 bg-white/10 p-8 sm:p-12 text-center overflow-hidden">
+                                        {/* Animated background elements */}
+                                        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+                                        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
+
+                                        <div className="space-y-6 relative z-10">
+                                            <div className="relative w-24 h-24 mx-auto mb-8">
+                                                <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
+                                                <div className="absolute inset-0 bg-gradient-to-tr from-primary to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
+                                                    <span className="text-4xl">🤝</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                {session.status === 'scheduled' && session.scheduled_time && (
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] uppercase font-black tracking-widest mx-auto">
+                                                        <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+                                                        Scheduled: {new Date(session.scheduled_time).toLocaleString([], { 
+                                                            weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                                                        })}
+                                                    </div>
+                                                )}
+                                                <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                                                    Waiting for {peerName}
+                                                </h3>
+                                                <p className="text-slate-200 text-lg font-medium opacity-80">
+                                                    Your collaborative learning space is ready.
                                                 </p>
                                             </div>
-                                        )}
-                                        <p className="text-sm text-slate-500">
-                                            Connect with your peer to start the session.
-                                        </p>
-                                    </div>
 
-                                    {/* Participant Status */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 rounded-xl bg-primary text-white space-y-2">
-                                            <p className="text-[10px] uppercase font-bold tracking-widest opacity-80">You</p>
-                                            <p className="font-bold truncate">{user.name}</p>
-                                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Ready</span>
+                                            {/* Participant Cards */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
+                                                {/* You */}
+                                                <div className="relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 p-5 flex items-center gap-4 transition-transform hover:scale-[1.02]">
+                                                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+                                                        <span className="text-xl">👤</span>
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <p className="text-[10px] uppercase font-bold text-primary tracking-widest leading-none mb-1">You</p>
+                                                        <p className="text-white font-bold truncate">{user.name}</p>
+                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                                            <span className="text-[10px] text-green-400 font-bold uppercase">Ready</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Peer */}
+                                                <div className={clsx(
+                                                    "relative overflow-hidden rounded-2xl border p-5 flex items-center gap-4 transition-all duration-500",
+                                                    sessionSocket.isPeerInRoom 
+                                                        ? "bg-green-500/10 border-green-500/30 scale-[1.02]" 
+                                                        : "bg-white/5 border-white/10 grayscale opacity-60"
+                                                )}>
+                                                    <div className={clsx(
+                                                        "w-12 h-12 rounded-full flex items-center justify-center border transition-colors",
+                                                        sessionSocket.isPeerInRoom ? "bg-green-500/20 border-green-500/30" : "bg-white/10 border-white/10"
+                                                    )}>
+                                                        <span className="text-xl">👤</span>
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest leading-none mb-1">Partner</p>
+                                                        <p className="text-white font-bold truncate">{peerName}</p>
+                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                            <div className={clsx("w-1.5 h-1.5 rounded-full", sessionSocket.isPeerInRoom ? "bg-green-400" : "bg-slate-400")} />
+                                                            <span className={clsx("text-[10px] font-bold uppercase", sessionSocket.isPeerInRoom ? "text-green-400" : "text-slate-400")}>
+                                                                {sessionSocket.isPeerInRoom ? 'Joined' : 'Waiting...'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Rules Hint */}
+                                            <div className="mt-12 pt-8 border-t border-white/10">
+                                                <div className="flex gap-2 justify-center mb-6">
+                                                    <div className="bg-white/5 px-4 py-2 rounded-full text-[11px] text-slate-300 border border-white/5">
+                                                        ⏱️ 5m min duration
+                                                    </div>
+                                                    <div className="bg-white/5 px-4 py-2 rounded-full text-[11px] text-slate-300 border border-white/5">
+                                                        ✨ +1 Reward Potential
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col sm:flex-row gap-3">
+                                                    <button 
+                                                        onClick={() => navigate('/sessions')} 
+                                                        className="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-bold transition-all border border-white/10 flex-1"
+                                                    >
+                                                        Exit to Hub
+                                                    </button>
+                                                    <div className="px-6 py-3 rounded-xl bg-primary text-white text-sm font-bold flex-1 flex items-center justify-center gap-2">
+                                                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                                                        Watching for peer...
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className={clsx(
-                                            "p-4 rounded-xl border-2 transition-all space-y-2",
-                                            sessionSocket.isPeerInRoom ? "border-green-500 bg-green-50" : "border-slate-100 bg-slate-50 opacity-60"
-                                        )}>
-                                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Peer</p>
-                                            <p className="font-bold truncate text-slate-900">{peerName}</p>
-                                            <span className={clsx(
-                                                "text-xs px-2 py-0.5 rounded-full",
-                                                sessionSocket.isPeerInRoom ? "bg-green-500 text-white" : "bg-slate-200 text-slate-500"
-                                            )}>
-                                                {sessionSocket.isPeerInRoom ? 'Joined' : 'Waiting...'}
-                                            </span>
-                                        </div>
                                     </div>
-
-                                    {/* Session Rules */}
-                                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
-                                        <p className="text-xs font-bold text-amber-800 flex items-center gap-2">
-                                            <span>⚠️</span> Session Rules
-                                        </p>
-                                        <ul className="text-[10px] text-amber-700 space-y-1 list-disc ml-4">
-                                            <li>Session activates automatically when both are present.</li>
-                                            <li>Stay for at least 5 minutes to earn/spend credits.</li>
-                                            <li>Please be respectful and focused on the learning goals.</li>
-                                        </ul>
-                                    </div>
-
-                                    {!sessionSocket.isPeerInRoom && (
-                                        <div className="flex gap-2 items-center justify-center text-xs text-primary font-medium bg-primary/5 py-2 px-4 rounded-full w-fit mx-auto mt-4">
-                                            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
-                                            Monitoring room presence...
-                                        </div>
-                                    )}
-
-                                    {session.status === 'scheduled' && (
-                                        <button 
-                                            onClick={() => navigate('/sessions')} 
-                                            className="btn-secondary w-full py-3 text-sm mt-4"
-                                        >
-                                            Back to Hub
-                                        </button>
-                                    )}
                                 </motion.div>
                             </div>
                         )}
