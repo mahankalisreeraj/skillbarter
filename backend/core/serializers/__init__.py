@@ -1,4 +1,4 @@
-from .user import UserSerializer, UserCreateSerializer, UserUpdateSerializer, UserPublicSerializer
+from .user import UserSerializer, UserCreateSerializer, UserUpdateSerializer, UserPublicSerializer, UserMinimalSerializer
 from .learning_request import LearningRequestPostSerializer, LearningRequestPostCreateSerializer
 from .session import SessionSerializer, SessionCreateSerializer, SessionTimerSerializer
 from .review import ReviewSerializer, ReviewCreateSerializer
@@ -10,6 +10,7 @@ __all__ = [
     'UserCreateSerializer',
     'UserUpdateSerializer',
     'UserPublicSerializer',
+    'UserMinimalSerializer',
     'LearningRequestPostSerializer',
     'LearningRequestPostCreateSerializer',
     'SessionSerializer',

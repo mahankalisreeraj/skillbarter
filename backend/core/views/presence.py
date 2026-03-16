@@ -5,7 +5,9 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from ..serializers import UserPublicSerializer
+from django.db import models
+from ..serializers import UserPublicSerializer, UserMinimalSerializer
+from ..models import Session
 
 User = get_user_model()
 
@@ -35,10 +37,7 @@ class PresenceViewSet(viewsets.ViewSet):
         Fetch all users who have been seen within the last 60 seconds.
         Includes any active sessions where a peer is waiting.
         """
-        from ..models import Session
-        from django.db import models
-        
-        # Update current user's heartbeat
+        # Update current user's heartbeat (only save if needed or to update last_seen)
         user = request.user
         user.last_seen = timezone.now()
         user.is_online = True
@@ -51,7 +50,8 @@ class PresenceViewSet(viewsets.ViewSet):
         User.objects.filter(is_online=True, last_seen__lt=threshold).update(is_online=False)
         
         online_users = User.objects.filter(is_online=True)
-        serializer = UserPublicSerializer(online_users, many=True)
+        # Use lightweight serializer for presence
+        serializer = UserMinimalSerializer(online_users, many=True)
 
         # Check for sessions where peer is waiting but I am not in the room
         waiting_sessions = []

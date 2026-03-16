@@ -129,3 +129,11 @@ class UserPublicSerializer(serializers.ModelSerializer):
             'hours_taught',
             'weekly_activity',
         ]
+
+
+class UserMinimalSerializer(serializers.ModelSerializer):
+    """Minimal serializer for high-frequency presence polling."""
+    
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'is_online', 'availability']
