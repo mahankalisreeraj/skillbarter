@@ -163,6 +163,11 @@ class SessionViewSet(viewsets.ModelViewSet):
         # Stop timer
         active_timer.stop()
         
+        return Response({
+            'message': 'Timer stopped.',
+            'timer': SessionTimerSerializer(active_timer).data
+        })
+        
     @action(detail=True, methods=['post'], url_path='respond')
     def respond_to_request(self, request, pk=None):
         """Learner accepts or rejects the teacher's request."""
@@ -492,6 +497,7 @@ class SessionViewSet(viewsets.ModelViewSet):
         Bank takes 10% cut from teacher earnings.
         """
         from django.db import transaction
+        from ..models import Bank, CreditTransaction
         
         user1_teaching_seconds = session.get_teaching_time(session.user1)
         user2_teaching_seconds = session.get_teaching_time(session.user2)
