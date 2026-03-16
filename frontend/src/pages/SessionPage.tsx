@@ -319,64 +319,6 @@ export default function SessionPage() {
         )
     }
 
-    // Lobby View
-    if (session && session.status === 'scheduled') {
-        const isPeerInLobby = session.user1 === user.id ? !!session.user2_lobby_joined_at : !!session.user1_lobby_joined_at
-        
-        return (
-            <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-white">
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-md w-full card p-8 text-center space-y-8 shadow-2xl relative"
-                >
-                    <div className="absolute top-0 left-0 w-full h-1.5 bg-primary" />
-                    
-                    <div className="space-y-2">
-                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-2xl animate-spin-slow">🛋️</div>
-                        <h2 className="text-2xl font-black text-slate-900">Meeting Lobby</h2>
-                        <p className="text-sm text-slate-500">Waiting for all participants to enter the room.</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 rounded-xl bg-primary text-white space-y-2">
-                            <p className="text-[10px] uppercase font-bold tracking-widest opacity-80">You</p>
-                            <p className="font-bold truncate">{user.name}</p>
-                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Ready</span>
-                        </div>
-                        <div className={clsx(
-                            "p-4 rounded-xl border-2 transition-all space-y-2",
-                            isPeerInLobby ? "border-green-500 bg-green-50" : "border-slate-100 bg-slate-50 opacity-60"
-                        )}>
-                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Peer</p>
-                            <p className="font-bold truncate text-slate-900">{peerName}</p>
-                            <span className={clsx(
-                                "text-xs px-2 py-0.5 rounded-full",
-                                isPeerInLobby ? "bg-green-500 text-white" : "bg-slate-200 text-slate-500"
-                            )}>
-                                {isPeerInLobby ? 'Joined' : 'Waiting...'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
-                        <p className="text-xs font-bold text-amber-800 flex items-center gap-2">
-                            <span>⚠️</span> Session Rules
-                        </p>
-                        <ul className="text-[10px] text-amber-700 space-y-1 list-disc ml-4">
-                            <li>Session activates automatically when both are in this lobby.</li>
-                            <li>If both don't join within 10 minutes of start time, session expires.</li>
-                            <li>No-shows result in a <strong>1 credit penalty</strong>.</li>
-                        </ul>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button onClick={() => navigate('/sessions')} className="btn-secondary flex-1 py-3 text-xs">Exit to Hub</button>
-                    </div>
-                </motion.div>
-            </div>
-        )
-    }
 
     return (
         <div className="h-[calc(100vh-4rem)] flex flex-col animate-fade-in">
@@ -443,35 +385,96 @@ export default function SessionPage() {
             <div ref={containerRef} className="flex-1 flex flex-col lg:flex-row gap-0 p-2 overflow-hidden relative min-h-0 w-full">
                 {/* Primary Panel */}
                 <div className="flex-1 lg:w-0 card !p-0 overflow-hidden min-w-0 flex flex-col h-[50vh] lg:h-full bg-surface-elevated relative shadow-xl">
-                    {/* Waiting Indicator */}
+                    {/* Waiting Indicator / Lobby Overlay */}
                     <AnimatePresence>
-                        {!sessionSocket.isPeerInRoom && sessionSocket.session?.is_active && (
-                            <div className="absolute inset-0 z-20 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4 sm:p-6 transition-all animate-fade-in">
+                        {(!sessionSocket.isPeerInRoom || (session && session.status === 'scheduled')) && session && session.status !== 'expired' && (
+                            <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    className="card max-w-sm w-full p-6 sm:p-8 text-center space-y-4 shadow-2xl border-primary/20 bg-surface/90"
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="max-w-md w-full card p-8 text-center space-y-8 shadow-2xl border-primary/20 bg-surface/95"
                                 >
-                                    <div className="relative">
-                                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-2xl sm:text-3xl animate-pulse">
-                                            ⏳
+                                    <div className="space-y-2">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-3xl animate-pulse">
+                                            🛋️
                                         </div>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg sm:text-xl font-bold text-slate-900">Waiting for {peerName}</h3>
-                                        <p className="text-slate-500 text-xs sm:text-sm mt-2">
-                                            They'll be here soon!
+                                        <h3 className="text-2xl font-black text-slate-900">
+                                            {session.status === 'scheduled' ? 'Meeting Lobby' : 'Waiting Area'}
+                                        </h3>
+                                        {session.status === 'scheduled' && session.scheduled_time && (
+                                            <div className="bg-primary/5 py-2 px-4 rounded-lg inline-block border border-primary/10">
+                                                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Scheduled for</p>
+                                                <p className="text-sm font-semibold text-slate-700">
+                                                    {new Date(session.scheduled_time).toLocaleString([], { 
+                                                        weekday: 'short', 
+                                                        month: 'short', 
+                                                        day: 'numeric', 
+                                                        hour: '2-digit', 
+                                                        minute: '2-digit' 
+                                                    })}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <p className="text-sm text-slate-500">
+                                            Connect with your peer to start the session.
                                         </p>
                                     </div>
-                                    <div className="flex gap-2 items-center justify-center text-[10px] sm:text-xs text-primary font-medium bg-primary/5 py-1.5 px-3 rounded-full w-fit mx-auto">
-                                        <span className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
-                                        Monitoring room...
+
+                                    {/* Participant Status */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-xl bg-primary text-white space-y-2">
+                                            <p className="text-[10px] uppercase font-bold tracking-widest opacity-80">You</p>
+                                            <p className="font-bold truncate">{user.name}</p>
+                                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">Ready</span>
+                                        </div>
+                                        <div className={clsx(
+                                            "p-4 rounded-xl border-2 transition-all space-y-2",
+                                            sessionSocket.isPeerInRoom ? "border-green-500 bg-green-50" : "border-slate-100 bg-slate-50 opacity-60"
+                                        )}>
+                                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Peer</p>
+                                            <p className="font-bold truncate text-slate-900">{peerName}</p>
+                                            <span className={clsx(
+                                                "text-xs px-2 py-0.5 rounded-full",
+                                                sessionSocket.isPeerInRoom ? "bg-green-500 text-white" : "bg-slate-200 text-slate-500"
+                                            )}>
+                                                {sessionSocket.isPeerInRoom ? 'Joined' : 'Waiting...'}
+                                            </span>
+                                        </div>
                                     </div>
+
+                                    {/* Session Rules */}
+                                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-left space-y-2">
+                                        <p className="text-xs font-bold text-amber-800 flex items-center gap-2">
+                                            <span>⚠️</span> Session Rules
+                                        </p>
+                                        <ul className="text-[10px] text-amber-700 space-y-1 list-disc ml-4">
+                                            <li>Session activates automatically when both are present.</li>
+                                            <li>Stay for at least 5 minutes to earn/spend credits.</li>
+                                            <li>Please be respectful and focused on the learning goals.</li>
+                                        </ul>
+                                    </div>
+
+                                    {!sessionSocket.isPeerInRoom && (
+                                        <div className="flex gap-2 items-center justify-center text-xs text-primary font-medium bg-primary/5 py-2 px-4 rounded-full w-fit mx-auto mt-4">
+                                            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
+                                            Monitoring room presence...
+                                        </div>
+                                    )}
+
+                                    {session.status === 'scheduled' && (
+                                        <button 
+                                            onClick={() => navigate('/sessions')} 
+                                            className="btn-secondary w-full py-3 text-sm mt-4"
+                                        >
+                                            Back to Hub
+                                        </button>
+                                    )}
                                 </motion.div>
                             </div>
                         )}
                     </AnimatePresence>
+
                     <div className={clsx('h-full w-full relative', activeMode !== 'whiteboard' && 'hidden')}>
                         <Whiteboard
                             sessionId={sessionId}

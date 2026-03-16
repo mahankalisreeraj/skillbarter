@@ -143,16 +143,13 @@ export const useSessionsStore = create<SessionsState>((set) => ({
     endSession: async (id: number) => {
         try {
             const response = await api.post(`sessions/${id}/end/`)
+            const updated = response.data.session
             const { credit_summary } = response.data
 
             // Update local session state
             set((state) => ({
-                sessions: state.sessions.map((s) =>
-                    s.id === id ? { ...s, is_active: false, end_time: new Date().toISOString() } : s
-                ),
-                currentSession: state.currentSession?.id === id
-                    ? { ...state.currentSession, is_active: false, end_time: new Date().toISOString() }
-                    : state.currentSession,
+                sessions: state.sessions.map((s) => s.id === id ? updated : s),
+                currentSession: state.currentSession?.id === id ? updated : state.currentSession
             }))
 
             // Sync credits to authStore

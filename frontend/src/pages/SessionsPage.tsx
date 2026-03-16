@@ -29,11 +29,23 @@ export default function SessionsPage() {
         )
     }
 
+    const terminalStatuses = ['completed', 'expired', 'rejected']
+    
+    // Incoming: Pending requests where I am the learner (user1)
     const incomingRequests = sessions.filter(s => s.status === 'pending' && s.user1 === user?.id)
+    
+    // Sent: Pending requests where I am the teacher (user2)
     const sentRequests = sessions.filter(s => s.status === 'pending' && s.user2 === user?.id)
-    const scheduledSessions = sessions.filter(s => s.status === 'scheduled' || s.status === 'accepted')
-    const activeSessions = sessions.filter(s => s.status === 'active')
-    const pastSessions = sessions.filter(s => ['completed', 'expired', 'rejected'].includes(s.status)).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
+    
+    // Scheduled/Upcoming: Accepted or Scheduled but not terminal
+    const scheduledSessions = sessions.filter(s => (s.status === 'scheduled' || s.status === 'accepted') && !terminalStatuses.includes(s.status))
+    
+    // Active: Currently active sessions
+    const activeSessions = sessions.filter(s => s.status === 'active' && !terminalStatuses.includes(s.status))
+    
+    // Past: Any session with a terminal status
+    const pastSessions = sessions.filter(s => terminalStatuses.includes(s.status))
+        .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime())
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-12">
