@@ -9,8 +9,8 @@ interface PostsState {
     error: string | null
 
     // Actions
-    fetchPosts: () => Promise<void>
-    fetchMyPosts: () => Promise<void>
+    fetchPosts: (background?: boolean) => Promise<void>
+    fetchMyPosts: (background?: boolean) => Promise<void>
     createPost: (topicLearn: string, topicTeach: string, okWithJustLearning: boolean) => Promise<LearningPost>
     markCompleted: (id: number) => Promise<void>
     deletePost: (id: number) => Promise<void>
@@ -23,11 +23,12 @@ export const usePostsStore = create<PostsState>((set) => ({
     isLoading: false,
     error: null,
 
-    fetchPosts: async () => {
-        set({ isLoading: true, error: null })
+    fetchPosts: async (background = false) => {
+        if (!background) {
+            set({ isLoading: true, error: null })
+        }
         try {
             const response = await api.get('posts/')
-            // Handle paginated response (Django REST returns { results: [...] })
             const posts = Array.isArray(response.data)
                 ? response.data
                 : (response.data?.results ?? [])
@@ -37,11 +38,12 @@ export const usePostsStore = create<PostsState>((set) => ({
         }
     },
 
-    fetchMyPosts: async () => {
-        set({ isLoading: true, error: null })
+    fetchMyPosts: async (background = false) => {
+        if (!background) {
+            set({ isLoading: true, error: null })
+        }
         try {
             const response = await api.get('posts/my_posts/')
-            // Handle paginated response (Django REST returns { results: [...] })
             const myPosts = Array.isArray(response.data)
                 ? response.data
                 : (response.data?.results ?? [])

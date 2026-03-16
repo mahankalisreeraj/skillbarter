@@ -17,20 +17,21 @@ export default function SessionsPage() {
     useEffect(() => {
         fetchSessions()
         
-        // Auto-poll every 30 seconds to catch status changes (expiry, completion, rejection)
+        // Auto-poll every 30 seconds for background updates
         const interval = setInterval(() => {
-            fetchSessions()
+            fetchSessions(true) // Pass background=true to skip global isLoading
         }, 30_000)
         
         return () => clearInterval(interval)
     }, [fetchSessions])
 
-    if (isLoading) {
+    // Only show full-page loader if data is empty AND we are loading for the first time
+    if (isLoading && sessions.length === 0) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-slate-500">Loading sessions...</p>
+                    <p className="text-slate-500 font-medium">Loading your sessions...</p>
                 </div>
             </div>
         )

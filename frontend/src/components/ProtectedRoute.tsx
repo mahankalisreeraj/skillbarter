@@ -2,15 +2,17 @@ import { Navigate, Outlet } from 'react-router-dom'
 import { useAuthStore } from '@/stores/authStore'
 
 export default function ProtectedRoute() {
-    const { isAuthenticated, isHydrated, isLoading } = useAuthStore()
+    const { isAuthenticated, isHydrated } = useAuthStore()
 
-    // Wait for hydration before making any redirect decisions
-    if (!isHydrated || isLoading) {
+    // ONLY wait for hydration. 
+    // Do NOT block on isLoading here; global loading states (like token refresh) 
+    // should happen in the background without unmounting the whole app.
+    if (!isHydrated) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-slate-900">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                    <p className="text-slate-500">Loading...</p>
+                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
+                    <p className="text-slate-400 font-medium animate-pulse">Initializing SkillBarter...</p>
                 </div>
             </div>
         )

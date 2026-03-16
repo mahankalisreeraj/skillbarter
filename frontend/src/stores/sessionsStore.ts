@@ -10,7 +10,7 @@ interface SessionsState {
     error: string | null
 
     // Actions
-    fetchSessions: () => Promise<void>
+    fetchSessions: (background?: boolean) => Promise<void>
     fetchSession: (id: number) => Promise<Session | null>
     createSession: (user2Id: number, learningRequestId?: number) => Promise<Session>
     respondToRequest: (sessionId: number, decision: 'accept' | 'reject') => Promise<Session>
@@ -29,11 +29,12 @@ export const useSessionsStore = create<SessionsState>((set) => ({
     isLoading: false,
     error: null,
 
-    fetchSessions: async () => {
-        set({ isLoading: true, error: null })
+    fetchSessions: async (background = false) => {
+        if (!background) {
+            set({ isLoading: true, error: null })
+        }
         try {
             const response = await api.get('sessions/')
-            // Handle paginated response (Django REST returns { results: [...] })
             const sessions = Array.isArray(response.data)
                 ? response.data
                 : (response.data?.results ?? [])

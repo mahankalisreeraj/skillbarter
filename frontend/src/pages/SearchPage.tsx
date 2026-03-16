@@ -388,11 +388,11 @@ export default function SearchPage() {
                     </div>
                 </div>
 
-                {isLoading ? (
+                {isLoading && displayPosts.length === 0 ? (
                     <div className="card py-12">
                         <div className="flex flex-col items-center gap-3">
-                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                            <p className="text-slate-500">Loading posts...</p>
+                            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin shadow-lg" />
+                            <p className="text-slate-500 font-medium">Finding opportunities...</p>
                         </div>
                     </div>
                 ) : displayPosts.length === 0 ? (
