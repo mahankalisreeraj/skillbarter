@@ -260,6 +260,15 @@ export default function SessionPage() {
         }
     }, [sessionSocket.session?.is_active, showReviewModal])
 
+    // Auto-redirect when session expires or is rejected (no-show, cancelled, etc.)
+    useEffect(() => {
+        const s = sessionSocket.session
+        if (s && (s.status === 'expired' || s.status === 'rejected')) {
+            const timer = setTimeout(() => navigate('/sessions'), 3000)
+            return () => clearTimeout(timer)
+        }
+    }, [sessionSocket.session?.status, navigate])
+
     const handleEndSession = async () => {
         setIsEnding(true)
         try {
@@ -305,14 +314,24 @@ export default function SessionPage() {
             : session.user1_name)
         : 'Peer'
 
-    if (session && session.status === 'expired') {
+    if (session && (session.status === 'expired' || session.status === 'rejected')) {
+        const isExpired = session.status === 'expired'
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 animate-fade-in">
-                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-4xl">⏰</div>
+                <div className={`w-20 h-20 ${isExpired ? 'bg-red-500/10' : 'bg-amber-500/10'} rounded-full flex items-center justify-center text-4xl`}>
+                    {isExpired ? '⏰' : '❌'}
+                </div>
                 <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-bold text-slate-900">Session Expired</h2>
-                    <p className="text-slate-500">Neither participant joined within the 10-minute grace period.</p>
-                    <p className="text-red-500 font-bold">Credit penalty may have been applied.</p>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        {isExpired ? 'Session Expired' : 'Session Rejected'}
+                    </h2>
+                    <p className="text-slate-500">
+                        {isExpired
+                            ? 'Neither participant joined within the 10-minute grace period.'
+                            : 'This session request was declined.'}
+                    </p>
+                    {isExpired && <p className="text-red-500 font-bold">Credit penalty may have been applied.</p>}
+                    <p className="text-slate-400 text-sm">Redirecting you to the Hub in 3 seconds...</p>
                 </div>
                 <button onClick={() => navigate('/sessions')} className="btn-secondary">Return to Hub</button>
             </div>

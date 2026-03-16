@@ -400,6 +400,7 @@ class SessionViewSet(viewsets.ModelViewSet):
         End the session and process credit transfers.
         Credits are transferred based on teaching time.
         Bank takes 10% cut from each transfer.
+        Also marks the linked LearningRequestPost as completed.
         """
         session = self.get_object()
         user = request.user
@@ -420,6 +421,11 @@ class SessionViewSet(viewsets.ModelViewSet):
         
         # End session (this also stops any running timers)
         session.end_session()
+        
+        # Mark linked learning post as completed
+        if session.learning_request and not session.learning_request.is_completed:
+            session.learning_request.is_completed = True
+            session.learning_request.save(update_fields=['is_completed'])
         
         # Calculate and transfer credits
         credit_summary = self._process_credit_transfers(session)

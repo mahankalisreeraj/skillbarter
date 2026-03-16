@@ -16,6 +16,13 @@ export default function SessionsPage() {
 
     useEffect(() => {
         fetchSessions()
+        
+        // Auto-poll every 30 seconds to catch status changes (expiry, completion, rejection)
+        const interval = setInterval(() => {
+            fetchSessions()
+        }, 30_000)
+        
+        return () => clearInterval(interval)
     }, [fetchSessions])
 
     if (isLoading) {

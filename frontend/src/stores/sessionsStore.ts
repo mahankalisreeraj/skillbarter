@@ -144,27 +144,22 @@ export const useSessionsStore = create<SessionsState>((set) => ({
         try {
             const response = await api.post(`sessions/${id}/end/`)
             const updated = response.data.session
-            const { credit_summary } = response.data
 
-            // Update local session state
+            // Update local session state immediately
             set((state) => ({
                 sessions: state.sessions.map((s) => s.id === id ? updated : s),
                 currentSession: state.currentSession?.id === id ? updated : state.currentSession
             }))
 
-            // Sync credits to authStore
-            if (credit_summary) {
-                const currentUser = useAuthStore.getState().user
-                if (currentUser) {
-                    // Find current user's entry in summary
-                    const user1Data = credit_summary.user1
-                    const user2Data = credit_summary.user2
+            // Also re-fetch full sessions list to catch any server-side changes
+            // (e.g., related post being marked as complete)
+            api.get('sessions/').then((r) => {
+                const sessions = Array.isArray(r.data) ? r.data : (r.data?.results ?? [])
+                set({ sessions })
+            }).catch(() => {/* silently ignore background fetch error */})
 
-                    if (user1Data.id === currentUser.id || user2Data.id === currentUser.id) {
-                        useAuthStore.getState().fetchProfile()
-                    }
-                }
-            }
+            // Sync credits to authStore
+            useAuthStore.getState().fetchProfile()
 
             return response.data
         } catch (error: unknown) {
