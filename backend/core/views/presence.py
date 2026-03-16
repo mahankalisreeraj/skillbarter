@@ -59,16 +59,15 @@ class PresenceViewSet(viewsets.ViewSet):
             (models.Q(user1=user) | models.Q(user2=user)),
             is_active=True
         ).select_related('user1', 'user2')
-        
         for s in sessions:
             if user == s.user1:
                 is_peer_in_room = s.user2_last_room_presence and s.user2_last_room_presence > room_threshold
                 is_me_in_room = s.user1_last_room_presence and s.user1_last_room_presence > room_threshold
-                peer_name = s.user2.name
+                peer_name = s.user2.username
             else:
                 is_peer_in_room = s.user1_last_room_presence and s.user1_last_room_presence > room_threshold
                 is_me_in_room = s.user2_last_room_presence and s.user2_last_room_presence > room_threshold
-                peer_name = s.user1.name
+                peer_name = s.user1.username
                 
             if is_peer_in_room and not is_me_in_room:
                 waiting_sessions.append({
