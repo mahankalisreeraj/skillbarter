@@ -24,6 +24,7 @@ interface SessionSocketActions {
 }
 
 const POLL_INTERVAL = 1500 // 1.5 seconds for active collaboration
+const processedSignalsCache = new Set<string>()
 
 export function useSessionSocket(sessionId: string | number | undefined): SessionSocketState & SessionSocketActions {
     const [isConnected, setIsConnected] = useState(false)
@@ -85,22 +86,38 @@ export function useSessionSocket(sessionId: string | number | undefined): Sessio
             if (data.signal_data && data.signal_timestamp !== lastSignalTimeRef.current) {
                 const sig = data.signal_data
                 const myId = userIdRef.current
-
+                
                 if (sig.offer && sig.offer.sender_id !== myId) {
-                    window.dispatchEvent(new CustomEvent('signal', { detail: sig.offer }))
+                    const hash = JSON.stringify(sig.offer)
+                    if (!processedSignalsCache.has(hash)) {
+                        processedSignalsCache.add(hash)
+                        window.dispatchEvent(new CustomEvent('signal', { detail: sig.offer }))
+                    }
                 }
                 if (sig.answer && sig.answer.sender_id !== myId) {
-                    window.dispatchEvent(new CustomEvent('signal', { detail: sig.answer }))
+                    const hash = JSON.stringify(sig.answer)
+                    if (!processedSignalsCache.has(hash)) {
+                        processedSignalsCache.add(hash)
+                        window.dispatchEvent(new CustomEvent('signal', { detail: sig.answer }))
+                    }
                 }
                 if (sig.ready_signal && sig.ready_signal.sender_id !== myId) {
-                    window.dispatchEvent(new CustomEvent('signal', { detail: sig.ready_signal }))
+                    const hash = JSON.stringify(sig.ready_signal)
+                    if (!processedSignalsCache.has(hash)) {
+                        processedSignalsCache.add(hash)
+                        window.dispatchEvent(new CustomEvent('signal', { detail: sig.ready_signal }))
+                    }
                 }
 
                 const peerRole = data.session.user1 === myId ? 'callee' : 'caller'
                 const peerCandidates = sig[`candidates_${peerRole}`]
                 if (peerCandidates && Array.isArray(peerCandidates)) {
                     peerCandidates.forEach((candidate: any) => {
-                        window.dispatchEvent(new CustomEvent('signal', { detail: candidate }))
+                        const hash = JSON.stringify(candidate)
+                        if (!processedSignalsCache.has(hash)) {
+                            processedSignalsCache.add(hash)
+                            window.dispatchEvent(new CustomEvent('signal', { detail: candidate }))
+                        }
                     })
                 }
 

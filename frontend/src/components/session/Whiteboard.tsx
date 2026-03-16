@@ -53,6 +53,13 @@ export default function Whiteboard({ sessionId, isVisible, onSendData }: Whitebo
                 // Backend already excludes the sender, so any message received is from a peer.
                 // We ignore the 'source' field because the peer sending it sets it to 'local'.
                 isImportingRef.current = true
+                
+                // FIX: Update lastSceneRef before updateScene triggers onChange
+                if (data.elements && Array.isArray(data.elements)) {
+                    const sceneVersion = data.elements.reduce((acc: number, el: any) => acc + (el.version || 0), 0)
+                    lastSceneRef.current = `${data.elements.length}-${sceneVersion}`
+                }
+
                 excalidrawAPI.updateScene({
                     elements: data.elements,
                     appState: { ...data.appState },
@@ -104,11 +111,12 @@ export default function Whiteboard({ sessionId, isVisible, onSendData }: Whitebo
         if (isImportingRef.current || !excalidrawAPI) return
 
         // Quick check for elements change to avoid unnecessary broadcasts
-        const sceneString = JSON.stringify(elements.length) // Simple length check first
-        if (sceneString === lastSceneRef.current && elements.length > 0) {
-            // If length is same, we might still have changes, but let's at least avoid 
-            // constant broadcasts for appState changes like pointer movement if possible
-            // Excalidraw onChange triggers for many things.
+        const sceneVersion = elements.reduce((acc: number, el: any) => acc + (el.version || 0), 0)
+        const sceneString = `${elements.length}-${sceneVersion}`
+        
+        if (sceneString === lastSceneRef.current) {
+            // No actual element changes (just pointer/selection), don't broadcast
+            return
         }
         lastSceneRef.current = sceneString
 
