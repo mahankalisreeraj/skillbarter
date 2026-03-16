@@ -58,7 +58,7 @@ class PresenceViewSet(viewsets.ViewSet):
         sessions = Session.objects.filter(
             (models.Q(user1=user) | models.Q(user2=user)),
             is_active=True
-        )
+        ).select_related('user1', 'user2')
         
         for s in sessions:
             if user == s.user1:

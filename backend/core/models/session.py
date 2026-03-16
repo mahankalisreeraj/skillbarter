@@ -113,7 +113,12 @@ class Session(models.Model):
     
     def get_teaching_time(self, user):
         """Get total teaching time for a specific user in this session."""
-        timers = self.timers.filter(teacher=user)
+        # Use prefetched data if available to avoid N+1 queries
+        if hasattr(self, '_prefetched_objects_cache') and 'timers' in self._prefetched_objects_cache:
+            timers = [t for t in self.timers.all() if t.teacher_id == user.id]
+        else:
+            timers = self.timers.filter(teacher=user)
+            
         total_seconds = 0
         for timer in timers:
             if timer.end_time:
@@ -139,10 +144,14 @@ class Session(models.Model):
     
     def has_active_timer(self):
         """Check if there's an active timer in this session."""
+        if hasattr(self, '_prefetched_objects_cache') and 'timers' in self._prefetched_objects_cache:
+            return any(t.end_time is None for t in self.timers.all())
         return self.timers.filter(end_time__isnull=True).exists()
     
     def get_active_timer(self):
         """Get the currently running timer, if any."""
+        if hasattr(self, '_prefetched_objects_cache') and 'timers' in self._prefetched_objects_cache:
+            return next((t for t in self.timers.all() if t.end_time is None), None)
         return self.timers.filter(end_time__isnull=True).first()
 
 

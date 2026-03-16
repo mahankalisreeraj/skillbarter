@@ -7,9 +7,10 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 import uuid
 
-from ..models import Session, SessionTimer, CreditTransaction, Bank, LearningRequestPost
+from ..models import Session, SessionTimer, LearningRequestPost
 from ..serializers import (
     SessionSerializer,
+    SessionListSerializer,
     SessionCreateSerializer,
     SessionTimerSerializer
 )
@@ -38,13 +39,15 @@ class SessionViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return Session.objects.filter(
             user1=user
-        ) | Session.objects.filter(
+        ).prefetch_related('timers') | Session.objects.filter(
             user2=user
-        )
+        ).prefetch_related('timers')
     
     def get_serializer_class(self):
         if self.action == 'create':
             return SessionCreateSerializer
+        if self.action == 'list':
+            return SessionListSerializer
         return SessionSerializer
 
     def create(self, request, *args, **kwargs):
