@@ -63,11 +63,11 @@ class PresenceViewSet(viewsets.ViewSet):
             if user == s.user1:
                 is_peer_in_room = s.user2_last_room_presence and s.user2_last_room_presence > room_threshold
                 is_me_in_room = s.user1_last_room_presence and s.user1_last_room_presence > room_threshold
-                peer_name = s.user2.username
+                peer_name = s.user2.name
             else:
                 is_peer_in_room = s.user1_last_room_presence and s.user1_last_room_presence > room_threshold
                 is_me_in_room = s.user2_last_room_presence and s.user2_last_room_presence > room_threshold
-                peer_name = s.user1.username
+                peer_name = s.user1.name
                 
             if is_peer_in_room and not is_me_in_room:
                 waiting_sessions.append({
