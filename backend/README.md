@@ -1,24 +1,25 @@
-# Link & Learn - Django Backend
+# Link & Learn — Django Backend
 
-A peer-to-peer learning platform backend built with Django 5, Django REST Framework, and Django Channels.
+The REST API and WebSocket backend for the Link & Learn skill barter platform. Built with Django 5, Django REST Framework, Django Channels, and Daphne.
 
-## Features
-
-- **JWT Authentication**: Secure user authentication with SimpleJWT
-- **Credit System**: 5 minutes teaching = 1 credit, 10% bank cut
-- **Learning Posts**: Dynamic topic-based learning requests
-- **Real-time Sessions**: WebSocket-based timer sync and chat
-- **Reviews**: Public rating system for users
+---
 
 ## Tech Stack
 
-- Python 3.11+
-- Django 5.0
-- Django REST Framework
-- SimpleJWT
-- Django Channels
-- Redis (for WebSockets)
-- SQLite (dev) / PostgreSQL (prod)
+| Component | Technology |
+|---|---|
+| **Language** | Python 3.11+ |
+| **Web Framework** | Django 5.0 |
+| **REST API** | Django REST Framework |
+| **Authentication** | SimpleJWT (JWT via Bearer token) |
+| **Real-time** | HTTP Polling (frontend polls REST endpoints via Axios `setInterval`) |
+| **Channel Layer** | N/A (not used by frontend) |
+| **Database** | SQLite (dev) / PostgreSQL via `dj-database-url` (prod) |
+| **Static Files** | WhiteNoise |
+| **CORS** | `django-cors-headers` |
+| **Code Execution** | [onlinecompiler.io](https://onlinecompiler.io) (proxied) |
+
+---
 
 ## Quick Start
 
@@ -31,7 +32,7 @@ python -m venv venv
 # Windows
 venv\Scripts\activate
 
-# Linux/Mac
+# Linux / macOS
 source venv/bin/activate
 ```
 
@@ -41,20 +42,21 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Environment Setup (Optional)
+### 3. Configure Environment Variables
 
-Create a `.env` file in the backend directory:
+Create a `backend/.env` file:
 
 ```env
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-USE_IN_MEMORY_CHANNEL_LAYER=True
+DATABASE_URL=                        # Leave empty to use SQLite in dev
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+CSRF_TRUSTED_ORIGINS=http://localhost:5173,http://127.0.0.1:8000
+ONLINECOMPILER_API_KEY=your-key-here # Required for /api/execute/
 ```
 
-> **Note**: Set `USE_IN_MEMORY_CHANNEL_LAYER=True` if you don't have Redis installed for local development.
+> **Note:** Django Channels and Daphne are installed as dependencies but the frontend does **not** use WebSockets — it uses HTTP polling exclusively. You can run the server with the standard `python manage.py runserver` for full functionality.
 
 ### 4. Run Migrations
 
@@ -69,86 +71,21 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 6. Start Development Server
+The custom `User` model uses **email** as the unique identifier (not `username`). The `createsuperuser` command will ask for `email`, `name`, and `password`.
 
-**HTTP Server (standard):**
+### 6. Start Server
+
+**Recommended (standard Django server — sufficient for all features):**
 ```bash
 python manage.py runserver
 ```
 
-**ASGI Server (for WebSockets):**
+**Alternative ASGI server (Daphne — installed but not required by the frontend):**
 ```bash
-daphne -p 8000 linklearn.asgi:application
+daphne -b 127.0.0.1 -p 8000 linklearn.asgi:application
 ```
 
-## API Endpoints
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/signup/` | Register new user |
-| POST | `/api/auth/login/` | Login user |
-| POST | `/api/auth/token/refresh/` | Refresh JWT token |
-
-### Users
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users/me/` | Get current user profile |
-| PATCH | `/api/users/me/` | Update profile |
-| GET | `/api/users/{id}/reviews/` | Get user's reviews |
-
-### Learning Posts
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/posts/` | List active posts |
-| POST | `/api/posts/` | Create learning post |
-| GET | `/api/posts/{id}/` | Get post details |
-| PATCH | `/api/posts/{id}/complete/` | Mark post completed |
-| GET | `/api/posts/my_posts/` | Get my active posts |
-
-### Sessions
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/sessions/` | List user's sessions |
-| POST | `/api/sessions/` | Create session |
-| GET | `/api/sessions/{id}/` | Get session details |
-| POST | `/api/sessions/{id}/timer/start/` | Start teaching timer |
-| POST | `/api/sessions/{id}/timer/stop/` | Stop teaching timer |
-| POST | `/api/sessions/{id}/end/` | End session |
-| POST | `/api/sessions/{id}/reviews/` | Submit review |
-
-### Bank
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/bank/support/` | Check support eligibility |
-| POST | `/api/bank/support/` | Request support credits |
-
-## WebSocket Endpoints
-
-Connect with JWT token: `ws://host/ws/path/?token=<jwt_token>`
-
-| Endpoint | Description |
-|----------|-------------|
-| `ws://host/ws/presence/` | Online/offline status |
-| `ws://host/ws/chat/{session_id}/` | Session chat |
-| `ws://host/ws/session/{session_id}/` | Timer sync & credits |
-
-## Credit System Rules
-
-- **New users**: 15 credits on signup
-- **Teaching**: 5 minutes = 1 credit earned
-- **Bank cut**: 10% from every teaching transaction
-- **Support credits**:
-  - 0 credits → 6 credits
-  - 1-2 credits → 4 credits
-  - 3 credits → 2 credits
-  - >3 credits → not eligible
-  - Cooldown: 24 hours between requests
+---
 
 ## Project Structure
 
@@ -156,35 +93,261 @@ Connect with JWT token: `ws://host/ws/path/?token=<jwt_token>`
 backend/
 ├── manage.py
 ├── requirements.txt
-├── README.md
-├── linklearn/                 # Django project
-│   ├── __init__.py
+├── Procfile                    # Render: web: daphne linklearn.asgi:application
+├── build.sh                    # Render build script
+├── runtime.txt                 # Python version pin (e.g., python-3.11.x)
+├── linklearn/                  # Django project package
 │   ├── settings.py
-│   ├── urls.py
-│   ├── asgi.py
+│   ├── urls.py                 # Root URL config: /admin/, /api/, media/
+│   ├── asgi.py                 # Channels ASGI app entry point
 │   └── wsgi.py
-└── core/                      # Main app
+└── core/                       # Main Django app
     ├── models/
-    │   ├── user.py
-    │   ├── learning_request.py
-    │   ├── session.py
-    │   ├── review.py
-    │   └── credit.py
+    │   ├── user.py             # Custom User (email auth, credits, streak)
+    │   ├── session.py          # Session, SessionTimer
+    │   ├── learning_request.py # LearningRequestPost
+    │   ├── credit.py           # Bank (singleton), CreditTransaction
+    │   ├── review.py           # Review
+    │   └── chat.py             # ChatMessage
     ├── serializers/
+    │   ├── user.py
+    │   ├── session.py
+    │   ├── learning_request.py
+    │   ├── credit.py
+    │   ├── review.py
+    │   └── chat.py
     ├── views/
-    ├── consumers/
-    │   ├── presence.py
-    │   ├── chat.py
-    │   └── session.py
-    ├── urls.py
-    ├── routing.py
-    └── middleware.py
+    │   ├── auth.py             # SignupView, LoginView, LogoutView
+    │   ├── user.py             # UserMeView, UserDetailView, UserListView
+    │   ├── session.py          # SessionViewSet
+    │   ├── learning_request.py # LearningRequestPostViewSet
+    │   ├── presence.py         # PresenceViewSet
+    │   ├── chat_views.py       # ChatViewSet
+    │   ├── review.py           # ReviewViewSet
+    │   ├── credit.py           # CreditBalanceView, CreditTransactionListView
+    │   ├── bank.py             # BankSupportView
+    │   └── misc.py             # execute_code (onlinecompiler.io proxy)
+    ├── urls.py                 # All /api/* routes
+    ├── middleware.py
+    ├── permissions.py
+    └── utils.py                # calculate_credits() helper
 ```
 
-## Testing the API
+---
+
+## API Endpoints
+
+All endpoints are prefixed with `/api/`. All protected endpoints require the header:
+```
+Authorization: Bearer <access_token>
+```
+
+### Authentication
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/signup/` | No | Register new user |
+| POST | `/api/auth/login/` | No | Login user, returns JWT pair |
+| POST | `/api/auth/logout/` | Yes | Logout user |
+| POST | `/api/auth/token/refresh/` | No | Refresh access token |
+
+**Signup request body:**
+```json
+{
+  "email": "test@example.com",
+  "name": "Test User",
+  "password": "SecurePass123!",
+  "password_confirm": "SecurePass123!"
+}
+```
+
+### Users
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/users/` | Yes | List users |
+| GET | `/api/users/me/` | Yes | Get current user profile |
+| PATCH | `/api/users/me/` | Yes | Update own profile |
+| GET | `/api/users/<id>/` | Yes | Get user by ID |
+| GET | `/api/users/<user_pk>/reviews/` | Yes | Get reviews received by a user |
+
+### Learning Request Posts
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/posts/` | Yes | List active posts |
+| POST | `/api/posts/` | Yes | Create a learning request post |
+| GET | `/api/posts/<id>/` | Yes | Get post details |
+| PATCH | `/api/posts/<id>/` | Yes | Update a post |
+| POST | `/api/posts/<id>/complete/` | Yes | Mark post as completed |
+| GET | `/api/posts/my_posts/` | Yes | Get own active posts |
+
+**Create post request body:**
+```json
+{
+  "topic_to_learn": "Python",
+  "topic_to_teach": "JavaScript",
+  "ok_with_just_learning": false,
+  "bounty_enabled": false
+}
+```
+
+### Sessions
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/sessions/` | Yes | List user's sessions |
+| POST | `/api/sessions/` | Yes | Create session from a learning post (`{"post_id": 123}`) |
+| GET | `/api/sessions/<id>/` | Yes | Get session details |
+| POST | `/api/sessions/<id>/respond/` | Yes | Accept or reject session (`{"decision": "accept"}`) |
+| POST | `/api/sessions/<id>/propose-time/` | Yes | Propose a meeting time |
+| POST | `/api/sessions/<id>/confirm-time/` | Yes | Confirm proposed time |
+| POST | `/api/sessions/<id>/join-lobby/` | Yes | Signal lobby presence |
+| GET | `/api/sessions/<id>/updates/` | Yes | Poll for sync data, WebRTC signals, and presence |
+| POST | `/api/sessions/<id>/sync/` | Yes | Push whiteboard/code/WebRTC signal data |
+| POST | `/api/sessions/<id>/timer/start/` | Yes | Start teaching timer |
+| POST | `/api/sessions/<id>/timer/stop/` | Yes | Stop teaching timer |
+| POST | `/api/sessions/<id>/end/` | Yes | End session and process credit transfers |
+| POST | `/api/sessions/dm/<user_id>/` | Yes | Get or create a DM session with a user |
+| POST | `/api/sessions/<session_pk>/reviews/` | Yes | Submit a review for the session |
+| GET | `/api/sessions/<session_pk>/reviews/` | Yes | List reviews for a session |
+
+### Credits & Bank
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/credits/` | Yes | Get current credit balance |
+| GET | `/api/credits/transactions/` | Yes | List credit transaction history |
+| GET | `/api/bank/support/` | Yes | Check bank support eligibility |
+| POST | `/api/bank/support/` | Yes | Request support credits from the bank |
+
+### Presence
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/presence/` | Yes | List online users |
+| GET | `/api/presence/online/` | Yes | Get online user list |
+
+### Chat
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/chat/` | Yes | List chat messages |
+
+### Code Execution
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/execute/` | No | Execute code via onlinecompiler.io proxy |
+
+**Request body:**
+```json
+{
+  "language": "python",
+  "files": [{ "content": "print('hello')" }],
+  "input": ""
+}
+```
+
+**Supported languages:** `python`, `javascript`, `java`, `c`, `cpp`, `c++`, `csharp`, `php`, `ruby`, `go`, `rust`, `typescript`
+
+---
+
+## Frontend Polling Behaviour
+
+The frontend uses HTTP polling (no WebSockets) via a shared `usePolling` hook built on `setInterval`:
+
+| Hook | Endpoint Polled | Interval | Purpose |
+|---|---|---|---|
+| `usePresence` | `GET /api/presence/online/` | 5 s | Online users & waiting sessions |
+| `useChatSocket` (HTTP) | `GET /api/chat/<session_id>/messages/` | 3 s | New chat messages since last ID |
+| `useSessionSocket` (HTTP) | `GET /api/sessions/<session_id>/updates/` | 1.5 s | Session state, timer, WebRTC signals, whiteboard/code sync |
+
+Collaborative data (whiteboard, code editor, WebRTC signalling) is **pushed** via:
+```
+POST /api/sessions/<session_id>/sync/
+```
+and **received** by the peer on the next poll of `/updates/`.
+
+---
+
+## Data Models
+
+### User
+Custom user model (`AUTH_USER_MODEL = 'core.User'`) using **email** as the unique login identifier.
+
+| Field | Type | Notes |
+|---|---|---|
+| `email` | EmailField (unique) | Primary login identifier |
+| `name` | CharField (unique) | Display name |
+| `credits` | DecimalField | Starts at 15.00 |
+| `is_online` | BooleanField | Updated via WebSocket presence |
+| `availability` | CharField | Free-text availability description |
+| `last_seen` | DateTimeField | Last active timestamp |
+| `last_support_request` | DateTimeField | For 24h cooldown enforcement |
+| `last_login_date` | DateField | For streak tracking |
+| `login_streak` | IntegerField | Consecutive login days |
+
+### Session
+
+| Field | Type | Notes |
+|---|---|---|
+| `user1` | FK User | Learner (post creator) |
+| `user2` | FK User | Teacher (session initiator) |
+| `learning_request` | FK LearningRequestPost | Nullable (null for DM sessions) |
+| `status` | CharField | `pending / accepted / scheduled / active / completed / expired / rejected` |
+| `scheduled_time` | DateTimeField | Set after time is confirmed |
+| `room_id` | CharField (unique) | UUID assigned when time is confirmed |
+| `whiteboard_data` | JSONField | Collaborative whiteboard state |
+| `code_data` | JSONField | Collaborative code editor state |
+| `signal_data` | JSONField | WebRTC signalling (offer/answer/candidates) |
+| `sync_version` | PositiveIntegerField | Incremented on every collaborative update |
+
+### CreditTransaction
+Types: `TEACHING`, `LEARNING`, `SIGNUP`, `SUPPORT`, `BANK_CUT`
+
+---
+
+## Credit System Rules
+
+- **New users** receive **15 credits** on signup
+- **Teaching**: every 5 minutes = 1 credit earned
+- **Bank cut**: 10% from every teaching credit transfer
+- **Session expiry penalty**: –1 credit per user who fails to join within 10 minutes of scheduled time
+
+### Bank Support
+
+| Current Credits | Credits Received |
+|---|---|
+| 0 | +6 |
+| 1 – 2 | +4 |
+| 3 | +2 |
+| > 3 | Not eligible |
+| Cooldown | 24 hours between requests |
+
+---
+
+## Django Admin
+
+Access at `http://127.0.0.1:8000/admin/` after creating a superuser.
+
+Registered models: `User`, `Session`, `SessionTimer`, `LearningRequestPost`, `Bank`, `CreditTransaction`, `Review`, `ChatMessage`
+
+---
+
+## JWT Token Lifetime
+
+| Token | Lifetime |
+|---|---|
+| Access token | 1 hour |
+| Refresh token | 7 days |
+| Rotation | Enabled (refresh token rotated on each use) |
+
+---
+
+## Example API Calls (curl)
 
 ### Signup
-
 ```bash
 curl -X POST http://localhost:8000/api/auth/signup/ \
   -H "Content-Type: application/json" \
@@ -192,7 +355,6 @@ curl -X POST http://localhost:8000/api/auth/signup/ \
 ```
 
 ### Login
-
 ```bash
 curl -X POST http://localhost:8000/api/auth/login/ \
   -H "Content-Type: application/json" \
@@ -200,7 +362,6 @@ curl -X POST http://localhost:8000/api/auth/login/ \
 ```
 
 ### Create Learning Post
-
 ```bash
 curl -X POST http://localhost:8000/api/posts/ \
   -H "Content-Type: application/json" \
@@ -208,20 +369,25 @@ curl -X POST http://localhost:8000/api/posts/ \
   -d '{"topic_to_learn":"Python","topic_to_teach":"JavaScript","ok_with_just_learning":false}'
 ```
 
-## Expected Output
-
-When you start the server with `python manage.py runserver`:
-
+### Execute Code
+```bash
+curl -X POST http://localhost:8000/api/execute/ \
+  -H "Content-Type: application/json" \
+  -d '{"language":"python","files":[{"content":"print(\"hello world\")"}]}'
 ```
-Watching for file changes with StatReloader
-Performing system checks...
 
-System check identified no issues (0 silenced).
-February 03, 2026 - 00:00:00
-Django version 5.0.1, using settings 'linklearn.settings'
-Starting development server at http://127.0.0.1:8000/
-Quit the server with CTRL-BREAK.
-```
+---
+
+## Production Deployment (Render)
+
+The backend is configured for deployment on [Render](https://render.com):
+
+- **Start command** (`Procfile`): `web: daphne -b 0.0.0.0 -p $PORT linklearn.asgi:application` (Daphne is used as the production ASGI server; the frontend uses HTTP polling, not WebSockets)
+- Set all required environment variables in the Render dashboard
+- Set `DEBUG=False` and provide `DATABASE_URL` (PostgreSQL)
+- WhiteNoise serves static files; media files are served directly (ephemeral storage on Render)
+
+---
 
 ## License
 
