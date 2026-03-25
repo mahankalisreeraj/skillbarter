@@ -457,8 +457,8 @@ export default function SearchPage() {
                                             </p>
 
                                             {post.topic_to_teach && (
-                                                <p className="text-sm sm:text-slate-500 mt-1">
-                                                    Can teach: <span className="text-accent-dark">{post.topic_to_teach}</span>
+                                                <p className="text-sm text-slate-700 mt-1">
+                                                    Can teach: <span className="text-primary font-semibold">{post.topic_to_teach}</span>
                                                 </p>
                                             )}
 
